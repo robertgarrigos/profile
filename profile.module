@@ -92,13 +92,12 @@ function profile_menu() {
   $items['admin/structure/profiles'] = array(
     'title' => 'Profiles',
     'page callback' => 'drupal_get_form',
-    // 'page arguments' => array('profile_type_overview_form', 'profile_type'),
     'page arguments' => array('profile_type_overview_form', 'profile_type'),
     'description' => 'Manage profiles.',
-    'access callback' => 'entity_access',
-    // 'access arguments' => array('view', 'profile_type'),
+    'access callback' => 'profile_access',
     'access arguments' => array('view', 'profile_type'),
-    // 'file' => 'includes/entity.ui.inc',
+    'access arguments' => array('view', 'profile_type'),
+    'file' => 'profile.admin.inc',
   );
   $items['admin/structure/profiles/list'] = array(
     'title' => 'List',
@@ -106,26 +105,22 @@ function profile_menu() {
     'weight' => -10,
   );
   $items['admin/structure/profiles/add'] = array(
-    'title callback' => 'entity_ui_get_action_title',
-    'title arguments' => array('add', 'profile_type'),
+    'title' => 'Add profile',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', NULL, 'add'),
-    'access callback' => 'entity_access',
+    'access callback' => 'profile_access',
     'access arguments' => array('create', 'profile_type'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'profile.admin.inc',
   );
   $items['admin/structure/profiles/manage/%profile_type'] = array(
-    'title' => 'Edit',
-    //'title callback' => 'entity_label',
-    //'title arguments' => array('profile_type', 4),
+    'title callback' => 'profile_type_title',
+    'title arguments' => array(4),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', 4),
-    //'load arguments' => array('profile_type'),
-    'access callback' => TRUE,//'entity_access',
-    //'access arguments' => array('update', 'profile_type', 4),
+    'access callback' => 'profile_access',
+    'access arguments' => array('update', 'profile_type', 4),
     'file' => 'profile.admin.inc',
-    //'type' => MENU_LOCAL_TASK,
   );
   $items['admin/structure/profiles/manage/%profile_type/edit'] = array(
     'title' => 'Edit',
@@ -135,11 +130,12 @@ function profile_menu() {
 
   // Clone form, a special case for the edit form.
   $items['admin/structure/profiles/manage/%profile_type/clone'] = array(
-    'title' => 'Clone',
+    'title callback' => 'profile_type_title',
+    'title arguments' => array(4, 'Clone'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', 4, 'clone'),
     'load arguments' => array('profile_type'),
-    'access callback' => 'entity_access',
+    'access callback' => 'profile_access',
     'access arguments' => array('create', 'profile_type'),
     'file' => 'profile.admin.inc',
   );
@@ -148,65 +144,9 @@ function profile_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('profile_type_operation_form', 'profile_type', 4, 5),
     'load arguments' => array('profile_type'),
-    'access callback' => 'entity_access',
+    'access callback' => 'profile_access',
     'access arguments' => array('delete', 'profile_type', 4),
     'file' => 'profile.admin.inc',
-  );
-
-  // Add view, edit and delete menu items for content entities.
-  $items['profile/%profile'] = array(
-    'title callback' => 'entity_ui_get_page_title',
-    'title arguments' => array('view', 'profile', 1),
-    'page callback' => 'entity_ui_entity_page_view',
-    'page arguments' => array(1),
-    'load arguments' => array('profile'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('view', 'profile', 1),
-  );
-  $items['profile/%profile/view'] = array(
-    'title' => 'View',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'load arguments' => array('profile'),
-    'weight' => -10,
-  );
-  $items['profile/%profile/edit'] = array(
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('profile', 1),
-    'load arguments' => array('profile'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('edit', 'profile', 1),
-    'title' => 'Edit',
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-  $items['profile/%profile/delete'] = array(
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('profile' . '_operation_form', 'profile', 1, 'delete'),
-    'load arguments' => array('profile'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('delete', 'profile', 1),
-    'title' => 'Delete',
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE,
-  );
-
-  // Extend the 'add' path.
-  $items['profile/add'] = array(
-    'title callback' => 'entity_ui_get_action_title',
-    'title arguments' => array('add', 'profile'),
-    'page callback' => 'entity_ui_bundle_add_page',
-    'page arguments' => array('profile'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', 'profile'),
-    'type' => MENU_LOCAL_ACTION,
-  );
-  $items['profile/add/%'] = array(
-    'title callback' => 'entity_ui_get_action_title',
-    'title arguments' => array('add', 'profile', 2),
-    'page callback' => 'entity_ui_get_bundle_add_form',
-    'page arguments' => array('profile', 2),
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', 'profile'),
   );
 
   // Define page which provides form to generate profiles using
@@ -225,12 +165,11 @@ function profile_menu() {
   return $items;
 }
 
-function entity_access() {
-  return TRUE;
-}
-
-function entity_ui_get_action_title() {
-  return 'title';
+/**
+ * Menu callback. Build page title.
+ */
+function profile_type_title($type, $op = NULL) {
+  return $op ? t('Edit @title', array('@title' => $type->label)) : t('Clone @title', array('@title' => $type->label));
 }
 
 /**
@@ -247,54 +186,62 @@ function profile_permission() {
       'description' => t('Edit and view all user profiles.'),
     ),
   );
-/*   // Generate per profile type permissions.
+  // Generate per profile type permissions.
   foreach (profile_get_types() as $type) {
     $type_name = check_plain($type->type);
     $permissions += array(
       "edit own $type_name profile" => array(
-        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->getTranslation('label'))),
+        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->label)),
       ),
       "edit any $type_name profile" => array(
-        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->getTranslation('label'))),
+        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->label)),
       ),
       "view own $type_name profile" => array(
-        'title' => t('%type_name: View own profile', array('%type_name' => $type->getTranslation('label'))),
+        'title' => t('%type_name: View own profile', array('%type_name' => $type->label)),
       ),
       "view any $type_name profile" => array(
-        'title' => t('%type_name: View any profile', array('%type_name' => $type->getTranslation('label'))),
+        'title' => t('%type_name: View any profile', array('%type_name' => $type->label)),
       ),
     );
   }
- */  return $permissions;
+  return $permissions;
 }
 
 /**
- * Gets an array of all profile types, keyed by the type name.
+ * Read all configuration files from disk of a particular profile type.
  *
- * @param $type_name
- *   If set, the type with the given name is returned.
- * @return ProfileType[]
- *   Depending whether $type isset, an array of profile types or a single one.
+ * @param $type
+ *   A specific profile type.
+ * @return array
+ *   An array of all configs for the specified type.
  */
-function profile_get_types2($type_name = NULL) {
-  $results = entity_load_multiple('profile_type');
-
-  $types = array();
-  if (isset($results)) {
-    foreach ($results as $type) {
-      $types[$type->type] = $type;
+function profile_get_types($type = NULL) {
+  $configs = &backdrop_static(__FUNCTION__, array());
+  if (empty($configs)) {
+    $config_names = config_get_names_with_prefix('profile');
+    foreach ($config_names as $config_file) {
+      $config = config($config_file);
+      $data = $config->get();
+      $data += array(
+        'weight' => 0,
+      );
+      $data = (object) $data;
+      $configs[$data->type] = $data;
     }
+
+    // Sort the configs by weight.
+    backdrop_sort($configs, array(
+    'weight' => SORT_NUMERIC,
+    ));
   }
 
-  if (isset($type_name)) {
-    if (isset($types[$type_name])) {
-      return $types[$type_name];
+  if ($type) {
+    if (isset($configs[$type])) {
+      return $configs[$type];
     }
-    else {
-      return array();
-    }
+    return array();
   }
-  return $types;
+  return $configs;
 }
 
 /**
@@ -507,7 +454,7 @@ function profile_form_user_profile_form_alter(&$form, &$form_state) {
     // Wrap each profile form in a fieldset.
     $form['profile_' . $type_name] += array(
       '#type' => 'fieldset',
-      '#title' => check_plain($profile_type->getTranslation('label')),
+      '#title' => check_plain($profile_type->label),
     );
    }
   return;
@@ -533,7 +480,7 @@ function profile_form_user_register_form_alter(&$form, &$form_state) {
     foreach ($form_state['profiles'] as $type_name => $profile_type) {
       $form['profile_' . $type_name] += array(
         '#type' => 'fieldset',
-        '#title' => check_plain($profile_type->getTranslation('label')),
+        '#title' => check_plain($profile_type->label),
       );
     }
   }
@@ -789,36 +736,6 @@ function profile_form_submit_cleanup(&$form, &$form_state) {
 }
 
 /**
- * Implements hook_user_categories().
- */
-function profile_user_categories() {
-  $data = array();
-  foreach (profile_get_types() as $type => $info) {
-    if ($info->userCategory) {
-      $data[] = array(
-        'name' => $type,
-        'title' => $info->getTranslation('label'),
-        // Add an offset so a weight of 0 appears right of the account category.
-        'weight' => $info->weight + 3,
-        'access callback' => 'profile_category_access',
-        'access arguments' => array(1, $type)
-      );
-    }
-  }
-  return $data;
-}
-
-/**
- * Menu item access callback - check if a user has access to a profile category.
- */
-function profile_category_access($account, $type_name) {
-  // As there might be no profile yet, create a new object for being able to run
-  // a proper access check.
-  $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
-  return ($account->uid > 0 && $profile->type()->userCategory && profile_access('edit', $profile));
-}
-
-/**
  * Determines whether the given user has access to a profile.
  *
  * @param $op
@@ -1030,71 +947,6 @@ function entity_key_array_by_property(array $entities, $property) {
   return $ret;
 }
 
-
-/**
- * Builds the entity overview form.
- */
-function profile_type_overview_form($form, &$form_state) {
-
-/*   $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'profile_type');
-  $results = $query->execute();
-
-  $ids = isset($results['profile_type']) ? array_keys($results['profile_type']) : array();
-  $entities = $ids ? entity_load('profile_type', $ids) : array();
-  ksort($entities);
- */
-
-  $entities = profile_get_types();
-
-  $rows = array();
-  foreach ($entities as $entity) {
-    $rows[] = profile_type_overview_form_row($entity->type, $entity);
-  }
-
-  $render = array(
-    '#theme' => 'table',
-    '#header' => array(t('Label'), t('Status'), array('data' => t('Operations'), 'colspan' => 4)),
-    '#rows' => $rows,
-    '#empty' => t('None.'),
-  );
-
-  $form['table'] = $render;
-  $form['pager'] = array('#theme' => 'pager');
-  return $form;
-}
-
-/**
- * Generates the row for the passed entity and may be overridden in order to
- * customize the rows.
- */
-function profile_type_overview_form_row($id, $entity) {
-  $entity_uri = 'admin/structure/profiles';//entity_uri('profile_type', $entity);
-
-  $row[] = $entity->label;
-
-  // Add a row for the exportable status.
-  if ($entity->status === 1) {
-    $storage = t('Overridden');
-  }
-  elseif ($entity->status === 2) {
-    $storage = t('Default (module-provided)');
-  }
-  else {
-    $storage = t('Custom');
-  }
-  $row[] = $storage;
-
-  $operations = array(
-    '#type' => 'dropbutton',
-    '#links' => _profile_get_operations($id, $entity),
-  );
-  $row[] = backdrop_render($operations);
-
-  return $row;
-}
-
-
 /**
  * Given a profile, return a list of operations that can be performed on it.
  */
@@ -1161,43 +1013,6 @@ function template_preprocess_profile(&$variables) {
   $variables['theme_hook_suggestions'][] = 'profile';
   $variables['theme_hook_suggestions'][] = 'profile' . '__' . $variables['view_mode'];
   $variables['theme_hook_suggestions'][] = 'profile' . '__' . $profile->type;
-}
-
-/**
- * Read all configuration files from disk of a particular profile type.
- *
- * @param $type
- *   A specific profile type.
- * @return array
- *   An array of all configs for the specified type.
- */
-function profile_get_types($type = NULL) {
-  $configs = &backdrop_static(__FUNCTION__, array());
-  if (empty($configs)) {
-    $config_names = config_get_names_with_prefix('profile');
-    foreach ($config_names as $config_file) {
-      $config = config($config_file);
-      $data = $config->get();
-      $data += array(
-        'weight' => 0,
-      );
-      $data = (object) $data;
-      $configs[$data->type] = $data;
-    }
-
-    // Sort the configs by weight.
-    backdrop_sort($configs, array(
-    'weight' => SORT_NUMERIC,
-    ));
-  }
-
-  if ($type) {
-    if (isset($configs[$type])) {
-      return $configs[$type];
-    }
-    return array();
-  }
-  return $configs;
 }
 
 /**

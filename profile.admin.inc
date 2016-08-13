@@ -109,3 +109,68 @@ function profile_type_form_submit(&$form, &$form_state) {
 function profile_type_form_submit_delete(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['profile_type']->type . '/delete';
 }
+
+/**
+ * Builds the entity overview form.
+ */
+function profile_type_overview_form($form, &$form_state) {
+
+/*   $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'profile_type');
+  $results = $query->execute();
+
+  $ids = isset($results['profile_type']) ? array_keys($results['profile_type']) : array();
+  $entities = $ids ? entity_load('profile_type', $ids) : array();
+  ksort($entities);
+ */
+
+  $entities = profile_get_types();
+
+  $rows = array();
+  foreach ($entities as $entity) {
+    $rows[] = profile_type_overview_form_row($entity->type, $entity);
+  }
+
+  $render = array(
+    '#theme' => 'table',
+    '#header' => array(t('Label'), t('Status'), array('data' => t('Operations'), 'colspan' => 4)),
+    '#rows' => $rows,
+    '#empty' => t('None.'),
+  );
+
+  $form['table'] = $render;
+  $form['pager'] = array('#theme' => 'pager');
+  return $form;
+}
+
+/**
+ * Generates the row for the passed entity and may be overridden in order to
+ * customize the rows.
+ */
+function profile_type_overview_form_row($id, $entity) {
+  $entity_uri = 'admin/structure/profiles';//entity_uri('profile_type', $entity);
+
+  $row[] = $entity->label;
+
+  // Add a row for the exportable status.
+  if ($entity->status === 1) {
+    $storage = t('Overridden');
+  }
+  elseif ($entity->status === 2) {
+    $storage = t('Default (module-provided)');
+  }
+  else {
+    $storage = t('Custom');
+  }
+  $row[] = $storage;
+
+  $operations = array(
+    '#type' => 'dropbutton',
+    '#links' => _profile_get_operations($id, $entity),
+  );
+  $row[] = backdrop_render($operations);
+
+  return $row;
+}
+
+

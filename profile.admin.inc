@@ -21,7 +21,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     $profile_type->label .= ' (cloned)';
     $profile_type->type = '';
   }
-//dpm($profile_type);
+
   $form['label'] = array(
     '#title' => t('Label'),
     '#type' => 'textfield',
@@ -35,7 +35,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#type' => 'machine_name',
     '#default_value' => isset($profile_type->type) ? $profile_type->type : '',
     '#maxlength' => 32,
-    '#disabled' => $profile_type->isLocked() && $op != 'clone',
+    '#disabled' => 1,//$profile_type->isLocked() && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'profile_get_types',
       'source' => array('label'),
@@ -75,7 +75,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#weight' => 10,
   );
 
-  if (!$profile_type->isLocked() && $op != 'add' && $op != 'clone') {
+/*   if (!$profile_type->isLocked() && $op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete profile type'),
@@ -84,6 +84,8 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
       '#submit' => array('profile_type_form_submit_delete')
     );
   }
+ */  
+  
   return $form;
 }
 
@@ -93,10 +95,11 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
 function profile_type_form_submit(&$form, &$form_state) {
   $form_state['values']['data']['roles'] = array_filter($form_state['values']['data']['roles']);
   $profile_type = $form_state['values']['profile_type'];
-  entity_form_submit_build_entity('profile_type', $profile_type, $form, $form_state);
-  dpm($profile_type);
-  // Save and go back.
-  $profile_type->save();
+  $profile_type->label = $form_state['values']['label'];
+  $profile_type->type = $form_state['values']['type'];
+  $profile_type->data = $form_state['values']['data'];
+
+  profile_type_save($profile_type);
   $form_state['redirect'] = 'admin/structure/profiles';
 }
 

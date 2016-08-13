@@ -129,7 +129,6 @@ class Profile extends Entity {
 
   public function view($view_mode = 'full', $langcode = NULL, $page = NULL) {
     field_attach_prepare_view('profile', array($this->pid => $this), $view_mode);
-    dpm($this);
     entity_prepare_view('profile', array($this));
     $langcode = isset($langcode) ? $langcode : $GLOBALS['language_content']->langcode;
 
@@ -171,6 +170,7 @@ class Profile extends Entity {
     module_invoke_all('entity_view', $this, 'profile', $view_mode, $langcode);
     $build = $this->content;
     unset($this->content);
+
     return $build;
   }
 
@@ -211,87 +211,4 @@ class Profile extends Entity {
     return $this->label;
   }
 
-}
-
-/**
- * Use a separate class for profile types so we can specify some defaults
- * modules may alter.
- */
-class ProfileType extends Entity {
-
-  /**
-   * Whether the profile type appears in the user categories.
-   */
-  public $userCategory = TRUE;
-
-  /**
-   * Whether the profile is displayed on the user account page.
-   */
-  public $userView = TRUE;
-
-  public $type;
-  public $label;
-  public $weight = 0;
-
-  public function __construct(array $values = array()) {
-    parent::__construct($values, 'profile_type');
-  }
-
-  /**
-   * Returns whether the profile type is locked, thus may not be deleted or renamed.
-   *
-   * Profile types provided in code are automatically treated as locked, as well
-   * as any fixed profile type.
-   */
-  public function isLocked() {
-    return isset($this->status) && empty($this->is_new) && ($this->status & PROFILE_STORAGE_DEFAULT);
-  }
-
-  /**
-   * Overridden, to introduce the method for old entity API versions (BC).
-   *
-   * @todo Remove once we bump the required entity API version.
-   */
-  public function getTranslation($property, $langcode = NULL) {
-    if (module_exists('profile_i18n')) {
-      return parent::getTranslation($property, $langcode);
-    }
-    return $this->$property;
-  }
-
-  /**
-   * Overrides Entity::save().
-   */
-  public function save() {
-    parent::save();
-    // Clear field info caches such that any changes to extra fields get
-    // reflected.
-    field_info_cache_clear();
-  }
-
-  /**
-   * Implements EntityInterface::id().
-   */
-  public function id() {
-    return $this->id;
-  }
-
-  /**
-   * Implements EntityInterface::entityType().
-   */
-  public function entityType() {
-    return 'profile_type';
-  }
-
-  /**
-   * Implements EntityInterface::label().
-   */
-  public function label() {
-    return $this->label;
-  }
-
-  /**
-   * Implements EntityInterface::uri().
-   */
-  public function uri() {}
 }

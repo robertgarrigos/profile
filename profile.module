@@ -51,15 +51,10 @@ function profile_entity_info() {
       'uri callback' => 'entity_class_uri',
       'access callback' => 'profile_access',
       'module' => 'profile',
-      //'metadata controller class' => 'ProfileMetadataController'
     ),
   );
 
-  // Add bundle info but bypass entity_load() as we cannot use it here.
-  $types = db_select('profile_type', 'p')
-    ->fields('p')
-    ->execute()
-    ->fetchAllAssoc('type');
+  $types = profile_get_types();
 
   foreach ($types as $type => $info) {
     $return['profile']['bundles'][$type] = array(
@@ -72,37 +67,6 @@ function profile_entity_info() {
       ),
     );
   }
-
-  // Support entity cache module.
-  if (module_exists('entitycache')) {
-    $return['profile']['field cache'] = FALSE;
-    $return['profile']['entity cache'] = TRUE;
-  }
-
-  $return['profile_type'] = array(
-    'label' => t('Profile type'),
-    'plural label' => t('Profile types'),
-    'description' => t('Profiles types of Profile user profiles.'),
-    'entity class' => 'ProfileType',
-    'controller class' => 'EntityDatabaseStorageController',
-    'base table' => 'profile_type',
-    'fieldable' => FALSE,
-    'bundle of' => 'profile',
-    'exportable' => TRUE,
-    'entity keys' => array(
-      'id' => 'id',
-      'name' => 'type',
-      'label' => 'label',
-    ),
-    'access callback' => 'profile_type_access',
-    'module' => 'profile',
-    // Enable the entity API's admin UI.
-    'admin ui' => array(
-      'path' => 'admin/structure/profiles',
-      'file' => 'profile.admin.inc',
-      //'controller class' => 'ProfileTypeUIController',
-    ),
-  );
 
   return $return;
 }
@@ -312,7 +276,7 @@ function profile_permission() {
  * @return ProfileType[]
  *   Depending whether $type isset, an array of profile types or a single one.
  */
-function profile_get_types($type_name = NULL) {
+function profile_get_types2($type_name = NULL) {
   $results = entity_load_multiple('profile_type');
 
   $types = array();
@@ -467,10 +431,24 @@ function profile_save(Profile $profile) {
 }
 
 /**
- * Saves a profile type to the db.
+ * Saves a profile type to config.
  */
-function profile_type_save(ProfileType $type) {
-  $type->save();
+function profile_type_save($type) {
+  if ($type->storage === LAYOUT_STORAGE_DEFAULT) {
+    $type->storage = LAYOUT_STORAGE_OVERRIDE;
+  }
+
+  $data = (array) $type;
+
+  // Allow modules to act on profile data before saving.
+  foreach (module_implements('profile_presave') as $module) {
+    $function = $module . '_profile_presave';
+    $function($this->name, $data);
+  }
+
+  config('profile.profile.' . $data['type'])
+    ->setData($data)
+    ->save();
 }
 
 /**
@@ -501,11 +479,12 @@ function profile_user_view($account, $view_mode, $langcode) {
     if ($profile_type->userView && $profile = profile_load_by_user($account, $type)) {
       if (profile_access('view', $profile)) {
         $account->content['profile_' . $type] = array(
-          '#type' => 'view',
-          '#title' => $profile_type->getTranslation('label'),
+          '#type' => 'item',
+          '#title' => $profile_type->label,
           '#prefix' => '<a id="profile-' . $profile->type . '"></a>',
         );
-        $account->content['profile_' . $type]['#markup'] = $profile->view('account');
+        $render = $profile->view('account');
+        $account->content['profile_' . $type]['#markup'] = render($render);
       }
     }
   }
@@ -518,7 +497,6 @@ function profile_user_view($account, $view_mode, $langcode) {
  * @see profile_form_submit_handler
  */
 function profile_form_user_profile_form_alter(&$form, &$form_state) {
-  dpm($form_state);
   foreach (profile_get_types() as $type_name => $profile_type) {
     $profile = profile_load_by_user($form_state['user'], $type_name);
     if (empty($profile)) {
@@ -1035,7 +1013,7 @@ function entity_load_multiple_by_name($entity_type, $names = FALSE, $conditions 
   $results = $query->execute();
 
   $entities = entity_load_multiple($entity_type, $names, $conditions);
-  dpm($entities);
+
   $info = entity_get_info($entity_type);
   if (!isset($info['entity keys']['name'])) {
     return $entities;
@@ -1058,19 +1036,22 @@ function entity_key_array_by_property(array $entities, $property) {
  */
 function profile_type_overview_form($form, &$form_state) {
 
-  $query = new EntityFieldQuery();
+/*   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'profile_type');
   $results = $query->execute();
 
   $ids = isset($results['profile_type']) ? array_keys($results['profile_type']) : array();
   $entities = $ids ? entity_load('profile_type', $ids) : array();
   ksort($entities);
+ */
+
+  $entities = profile_get_types();
 
   $rows = array();
   foreach ($entities as $entity) {
     $rows[] = profile_type_overview_form_row($entity->type, $entity);
   }
-dpm($entities);
+
   $render = array(
     '#theme' => 'table',
     '#header' => array(t('Label'), t('Status'), array('data' => t('Operations'), 'colspan' => 4)),
@@ -1088,9 +1069,9 @@ dpm($entities);
  * customize the rows.
  */
 function profile_type_overview_form_row($id, $entity) {
-  $entity_uri = entity_uri('profile_type', $entity);
+  $entity_uri = 'admin/structure/profiles';//entity_uri('profile_type', $entity);
 
-  $row[] = $entity->label();
+  $row[] = $entity->label;
 
   // Add a row for the exportable status.
   if ($entity->status === 1) {
@@ -1157,6 +1138,7 @@ function template_preprocess_profile(&$variables) {
 
   $uri = entity_uri('profile', $profile);
   $variables['url'] = $uri && !empty($uri['path']) ? url($uri['path'], $uri['options']) : FALSE;
+  $variables['page'] = $uri && !empty($uri['path']) && $uri['path'] == $_GET['q'];
 
   // Helpful $content variable for templates.
   $variables['content'] = array();
@@ -1178,7 +1160,54 @@ function template_preprocess_profile(&$variables) {
   // Add suggestions.
   $variables['theme_hook_suggestions'][] = 'profile';
   $variables['theme_hook_suggestions'][] = 'profile' . '__' . $variables['view_mode'];
-  if ($id = entity_id('profile', $profile)) {
-    $variables['theme_hook_suggestions'][] = 'profile' . '__' . $id;
+  $variables['theme_hook_suggestions'][] = 'profile' . '__' . $profile->type;
+}
+
+/**
+ * Read all configuration files from disk of a particular profile type.
+ *
+ * @param $type
+ *   A specific profile type.
+ * @return array
+ *   An array of all configs for the specified type.
+ */
+function profile_get_types($type = NULL) {
+  $configs = &backdrop_static(__FUNCTION__, array());
+  if (empty($configs)) {
+    $config_names = config_get_names_with_prefix('profile');
+    foreach ($config_names as $config_file) {
+      $config = config($config_file);
+      $data = $config->get();
+      $data += array(
+        'weight' => 0,
+      );
+      $data = (object) $data;
+      $configs[$data->type] = $data;
+    }
+
+    // Sort the configs by weight.
+    backdrop_sort($configs, array(
+    'weight' => SORT_NUMERIC,
+    ));
   }
+
+  if ($type) {
+    if (isset($configs[$type])) {
+      return $configs[$type];
+    }
+    return array();
+  }
+  return $configs;
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function profile_config_info() {
+  $prefixes['profile.profile'] = array(
+    'name_key' => 'type',
+    'label_key' => 'label',
+    'group' => t('Profile types'),
+  );
+  return $prefixes;
 }

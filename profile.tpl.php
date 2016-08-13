@@ -28,7 +28,7 @@
  * @see template_process()
  */
 ?>
-<div class="<?php dpm(get_defined_vars()); print implode(' ', $classes); ?> clearfix"<?php print backdrop_attributes($attributes); ?>>
+<div class="<?php print implode(' ', $classes); ?> clearfix"<?php print backdrop_attributes($attributes); ?>>
 
   <?php if (!$page): ?>
     <h2>

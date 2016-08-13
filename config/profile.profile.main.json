@@ -1,0 +1,17 @@
+{
+    "_config_name": "profile.profile.main",
+    "userCategory": true,
+    "userView": true,
+    "type": "main",
+    "label": "Main profile",
+    "weight": "0",
+    "id": "1",
+    "data": {
+        "registration": 0,
+        "roles": {
+            "administrator": "administrator"
+        }
+    },
+    "status": "1",
+    "module": null
+}

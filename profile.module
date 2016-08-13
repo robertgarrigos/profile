@@ -8,6 +8,16 @@
 /**
  * Profile constant for user-defined profiles.
  */
+define('PROFILE_STATUS_DISABLED', 0);
+
+/**
+ * Profile constant for module-defined profiles.
+ */
+define('PROFILE_STATUS_ENABLED', 1);
+
+/**
+ * Profile constant for user-defined profiles.
+ */
 define('PROFILE_STORAGE_NORMAL', 1);
 
 /**
@@ -91,12 +101,11 @@ function profile_menu() {
 
   $items['admin/structure/profiles'] = array(
     'title' => 'Profiles',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_overview_form', 'profile_type'),
     'description' => 'Manage profiles.',
     'access callback' => 'profile_access',
-    'access arguments' => array('view', 'profile_type'),
-    'access arguments' => array('view', 'profile_type'),
+    'access arguments' => array('view'),
     'file' => 'profile.admin.inc',
   );
   $items['admin/structure/profiles/list'] = array(
@@ -109,7 +118,7 @@ function profile_menu() {
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', NULL, 'add'),
     'access callback' => 'profile_access',
-    'access arguments' => array('create', 'profile_type'),
+    'access arguments' => array('create'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'profile.admin.inc',
   );
@@ -119,12 +128,11 @@ function profile_menu() {
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', 4),
     'access callback' => 'profile_access',
-    'access arguments' => array('update', 'profile_type', 4),
+    'access arguments' => array('update', 4),
     'file' => 'profile.admin.inc',
   );
   $items['admin/structure/profiles/manage/%profile_type/edit'] = array(
     'title' => 'Edit',
-    'load arguments' => array('profile_type'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
@@ -134,18 +142,16 @@ function profile_menu() {
     'title arguments' => array(4, 'Clone'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', 4, 'clone'),
-    'load arguments' => array('profile_type'),
     'access callback' => 'profile_access',
-    'access arguments' => array('create', 'profile_type'),
+    'access arguments' => array('create', 4),
     'file' => 'profile.admin.inc',
   );
   // Menu item for operations like revert and delete.
   $items['admin/structure/profiles/manage/%profile_type/%'] = array(
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('profile_type_operation_form', 'profile_type', 4, 5),
-    'load arguments' => array('profile_type'),
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('profile_type_operation_form', 4, 5),
     'access callback' => 'profile_access',
-    'access arguments' => array('delete', 'profile_type', 4),
+    'access arguments' => array('delete', 4),
     'file' => 'profile.admin.inc',
   );
 
@@ -381,8 +387,8 @@ function profile_save(Profile $profile) {
  * Saves a profile type to config.
  */
 function profile_type_save($type) {
-  if ($type->storage === LAYOUT_STORAGE_DEFAULT) {
-    $type->storage = LAYOUT_STORAGE_OVERRIDE;
+  if ($type->storage === PROFILE_STORAGE_DEFAULT) {
+    $type->storage = PROFILE_STORAGE_NORMAL;
   }
 
   $data = (array) $type;
@@ -795,6 +801,8 @@ function profile_access($op, $profile = NULL, $account = NULL) {
  */
 function profile_profile_access($op, $profile = NULL, $account = NULL) {
   // Don't grant access for users to delete their profile.
+  dpm($profile);
+    dpm("$op any $type_name profile");
   if (isset($profile) && ($type_name = $profile->type) && $op != 'delete') {
     if (user_access("$op any $type_name profile", $account)) {
       return TRUE;
@@ -952,18 +960,18 @@ function entity_key_array_by_property(array $entities, $property) {
  */
 function _profile_get_operations($id, $profile) {
   $links = array();
-  if ($profile->status == 'fixed') {
+  $links['edit'] = array(
+    'title' => t('Edit'),
+    'href' => 'admin/structure/profiles/manage/' . $id,
+  );
+  if ($profile->status !== 'fixed') {
     $links['clone'] = array(
       'title' => t('Clone'),
       'href' => 'admin/structure/profiles/manage/' . $id . '/clone',
     );
   }
-  $links['edit'] = array(
-    'title' => t('Edit'),
-    'href' => 'admin/structure/profiles/manage/' . $id,
-  );
   $links['delete'] = array(
-    'title' => t('Settings'),
+    'title' => t('Delete'),
     'href' => 'admin/structure/profiles/manage/' . $id . '/delete',
   );
   $links['fields'] = array(

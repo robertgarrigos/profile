@@ -35,7 +35,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#type' => 'machine_name',
     '#default_value' => isset($profile_type->type) ? $profile_type->type : '',
     '#maxlength' => 32,
-    '#disabled' => 1,//$profile_type->isLocked() && $op != 'clone',
+    '#disabled' => ($profile_type->storage != PROFILE_STORAGE_DEFAULT) && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'profile_get_types',
       'source' => array('label'),
@@ -70,12 +70,12 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
   $form['weight'] = array(
     '#type' => 'weight',
     '#title' => t('Weight'),
-    '#default_value' => '',//$profile_type->weight,
+    '#default_value' => $profile_type->weight,
     '#description' => t('When showing profiles, those with lighter (smaller) weights get listed before profiles with heavier (larger) weights.'),
     '#weight' => 10,
   );
 
-/*   if (!$profile_type->isLocked() && $op != 'add' && $op != 'clone') {
+  if ($profile_type->storage != PROFILE_STORAGE_DEFAULT && $op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete profile type'),
@@ -84,7 +84,6 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
       '#submit' => array('profile_type_form_submit_delete')
     );
   }
- */  
   
   return $form;
 }
@@ -114,16 +113,6 @@ function profile_type_form_submit_delete(&$form, &$form_state) {
  * Builds the entity overview form.
  */
 function profile_type_overview_form($form, &$form_state) {
-
-/*   $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'profile_type');
-  $results = $query->execute();
-
-  $ids = isset($results['profile_type']) ? array_keys($results['profile_type']) : array();
-  $entities = $ids ? entity_load('profile_type', $ids) : array();
-  ksort($entities);
- */
-
   $entities = profile_get_types();
 
   $rows = array();
@@ -148,15 +137,15 @@ function profile_type_overview_form($form, &$form_state) {
  * customize the rows.
  */
 function profile_type_overview_form_row($id, $entity) {
-  $entity_uri = 'admin/structure/profiles';//entity_uri('profile_type', $entity);
+  $entity_uri = 'admin/structure/profiles';
 
   $row[] = $entity->label;
 
   // Add a row for the exportable status.
-  if ($entity->status === 1) {
+  if ($entity->status === PROFILE_STORAGE_OVERRIDE) {
     $storage = t('Overridden');
   }
-  elseif ($entity->status === 2) {
+  elseif ($entity->status === PROFILE_STORAGE_DEFAULT) {
     $storage = t('Default (module-provided)');
   }
   else {

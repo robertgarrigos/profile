@@ -8,7 +8,7 @@
 /**
  * Extend the defaults.
  */
-class Profile2MetadataController extends EntityDefaultMetadataController {
+class ProfileMetadataController extends DefaultEntityController {
 
   public function entityPropertyInfo() {
     $info = parent::entityPropertyInfo();
@@ -23,7 +23,7 @@ class Profile2MetadataController extends EntityDefaultMetadataController {
     );
 
     $properties['type'] = array(
-      'type' => 'profile2_type',
+      'type' => 'profile_type',
       'getter callback' => 'entity_property_getter_method',
       'setter callback' => 'entity_property_verbatim_set',
       'setter permission' => 'administer profiles',
@@ -66,15 +66,15 @@ class Profile2MetadataController extends EntityDefaultMetadataController {
 /**
  * Implements hook_entity_property_info_alter().
  */
-function profile2_entity_property_info_alter(&$info) {
+function profile_entity_property_info_alter(&$info) {
   // Add related profiles to the user object.
   $properties = &$info['user']['properties'];
-  foreach (profile2_get_types() as $type_name => $type) {
+  foreach (profile_get_types() as $type_name => $type) {
     $properties['profile_' . $type_name] = array(
-      'type' => 'profile2',
-      'label' => t('@type_name profile', array('@type_name' => drupal_ucfirst($type->label))),
+      'type' => 'profile',
+      'label' => t('@type_name profile', array('@type_name' => backdrop_ucfirst($type->label))),
       'description' => t("The users's @type_name profile.", array('@type_name' => $type->label)),
-      'getter callback' => 'profile2_user_get_properties',
+      'getter callback' => 'profile_user_get_properties',
       'bundle' => $type_name,
     );
   }

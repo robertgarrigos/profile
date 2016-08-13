@@ -1,0 +1,5 @@
+name = Profile
+description = Supports configurable user profiles.
+backdrop = 1.x
+configure = admin/structure/profiles
+type = module

@@ -8,26 +8,27 @@
 /**
  * Implements hook_install().
  */
-function profile2_install() {
+function profile_install() {
   // Add an initial profile type, but only if installed manually. In case the
   // module is installed via an installation profile, skip that.
-  if (!drupal_installation_attempted()) {
-    $type = entity_create('profile2_type', array(
+  if (!backdrop_installation_attempted()) {
+    $type = entity_create('profile_type', array(
       'type' => 'main',
       'label' => t('Main profile'),
       'weight' => 0,
       'data' => array('registration' => TRUE, 'use_page' => TRUE),
     ));
     $type->save();
-    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
-    drupal_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
+    dpm($type);
+    user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array('edit own main profile', 'view own main profile'));
+    backdrop_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
   }
 }
 
 /**
  * Implements hook_schema().
  */
-function profile2_schema() {
+function profile_schema() {
   $schema['profile'] = array(
     'description' => 'Stores profile items.',
     'fields' => array(
@@ -122,9 +123,7 @@ function profile2_schema() {
       'status' => array(
         'type' => 'int',
         'not null' => TRUE,
-        // Set the default to ENTITY_CUSTOM without using the constant as it is
-        // not safe to use it at this point.
-        'default' => 0x01,
+        'default' => 1,
         'size' => 'tiny',
         'description' => 'The exportable status of the entity.',
       ),
@@ -146,77 +145,15 @@ function profile2_schema() {
 /**
  * Implements hook_uninstall()
  */
-function profile2_uninstall() {
-  // Select all available profile2 bundles from the database directly, instead
-  // of entity_load() call. See https://drupal.org/node/1330598 for details.
+function profile_uninstall() {
+  // Select all available profile bundles from the database directly, instead
+  // of entity_load() call. See https://backdrop.org/node/1330598 for details.
  $types = db_select('profile_type', 'p')
     ->fields('p')
     ->execute()
     ->fetchAllAssoc('type');
 
   foreach ($types as $name => $type) {
-    field_attach_delete_bundle('profile2', $name);
+    //field_attach_delete_bundle('profile', $name);
   }
-}
-
-/**
- * Add in the exportable entity db columns as required by the entity API.
- */
-function profile2_update_7100() {
-  db_add_field('profile_type', 'status', array(
-    'type' => 'int',
-    'not null' => TRUE,
-    'default' => ENTITY_CUSTOM,
-    'size' => 'tiny',
-    'description' => 'The exportable status of the entity.',
-  ));
-  db_add_field('profile_type', 'module', array(
-    'description' => 'The name of the providing module if the entity has been defined in code.',
-    'type' => 'varchar',
-    'length' => 255,
-    'not null' => FALSE,
-  ));
-}
-
-/**
- * Add a label column to profiles.
- */
-function profile2_update_7101() {
-  db_add_field('profile', 'label', array(
-    'description' => 'A human-readable label for this profile.',
-    'type' => 'varchar',
-    'length' => 255,
-    'not null' => TRUE,
-    'default' => '',
-  ));
-  $types = db_select('profile_type', 'p')
-    ->fields('p')
-    ->execute()
-    ->fetchAllAssoc('type');
-
-  // Initialize with the type label.
-  foreach ($types as $type_name => $type) {
-    db_update('profile')
-      ->fields(array(
-        'label' => $type->label,
-      ))
-      ->condition('type', $type_name)
-      ->execute();
-  }
-}
-
-/**
- * Add a created and a changed column to profiles.
- */
-function profile2_update_7102() {
-  db_add_field('profile', 'created', array(
-    'description' => 'The Unix timestamp when the profile was created.',
-    'type' => 'int',
-    'not null' => FALSE,
-  ));
-  db_add_field('profile', 'changed', array(
-    'description' => 'The Unix timestamp when the profile was most recently saved.',
-    'type' => 'int',
-    'not null' => FALSE,
-  ));
 }

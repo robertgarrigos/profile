@@ -6,30 +6,22 @@
  */
 
 /**
- * UI controller.
- */
-class Profile2TypeUIController extends EntityDefaultUIController {
-
-  /**
-   * Overrides hook_menu() defaults.
-   */
-  public function hook_menu() {
-    $items = parent::hook_menu();
-    $items[$this->path]['description'] = 'Manage profiles, including fields.';
-    return $items;
-  }
-}
-
-/**
  * Generates the profile type editing form.
  */
-function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
+function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
+  if (!isset($profile_type) && $op == 'add') {
+    $profile_type = entity_create('profile_type', array());
+  }
+  $form['profile_type'] = array(
+    '#value' => $profile_type,
+    '#type' => 'value',
+  );
 
   if ($op == 'clone') {
     $profile_type->label .= ' (cloned)';
     $profile_type->type = '';
   }
-
+//dpm($profile_type);
   $form['label'] = array(
     '#title' => t('Label'),
     '#type' => 'textfield',
@@ -45,7 +37,7 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#maxlength' => 32,
     '#disabled' => $profile_type->isLocked() && $op != 'clone',
     '#machine_name' => array(
-      'exists' => 'profile2_get_types',
+      'exists' => 'profile_get_types',
       'source' => array('label'),
     ),
     '#description' => t('A unique machine-readable name for this profile type. It must only contain lowercase letters, numbers, and underscores.'),
@@ -60,7 +52,7 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
 
   $user_roles = user_roles();
   // Exclude anonymous user role.
-  unset($user_roles[DRUPAL_ANONYMOUS_RID]);
+  unset($user_roles[BACKDROP_ANONYMOUS_ROLE]);
   $form['data']['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Roles'),
@@ -78,7 +70,7 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
   $form['weight'] = array(
     '#type' => 'weight',
     '#title' => t('Weight'),
-    '#default_value' => $profile_type->weight,
+    '#default_value' => '',//$profile_type->weight,
     '#description' => t('When showing profiles, those with lighter (smaller) weights get listed before profiles with heavier (larger) weights.'),
     '#weight' => 10,
   );
@@ -89,7 +81,7 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
       '#value' => t('Delete profile type'),
       '#weight' => 45,
       '#limit_validation_errors' => array(),
-      '#submit' => array('profile2_type_form_submit_delete')
+      '#submit' => array('profile_type_form_submit_delete')
     );
   }
   return $form;
@@ -98,9 +90,11 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
 /**
  * Form API submit callback for the type form.
  */
-function profile2_type_form_submit(&$form, &$form_state) {
+function profile_type_form_submit(&$form, &$form_state) {
   $form_state['values']['data']['roles'] = array_filter($form_state['values']['data']['roles']);
-  $profile_type = entity_ui_form_submit_build_entity($form, $form_state);
+  $profile_type = $form_state['values']['profile_type'];
+  entity_form_submit_build_entity('profile_type', $profile_type, $form, $form_state);
+  dpm($profile_type);
   // Save and go back.
   $profile_type->save();
   $form_state['redirect'] = 'admin/structure/profiles';
@@ -109,6 +103,6 @@ function profile2_type_form_submit(&$form, &$form_state) {
 /**
  * Form API submit callback for the delete button.
  */
-function profile2_type_form_submit_delete(&$form, &$form_state) {
-  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['profile2_type']->type . '/delete';
+function profile_type_form_submit_delete(&$form, &$form_state) {
+  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['profile_type']->type . '/delete';
 }

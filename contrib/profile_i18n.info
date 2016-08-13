@@ -1,0 +1,13 @@
+name = Profile translation
+description = Translate profile types.
+dependencies[] = profile
+dependencies[] = i18n_string
+package = Multilingual - Internationalization
+core = 7.x
+
+; Information added by Backdrop.org packaging script on 2015-11-26
+version = "7.x-1.3+20-dev"
+core = "7.x"
+project = "profile"
+datestamp = "1448555053"
+

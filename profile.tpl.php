@@ -28,15 +28,15 @@
  * @see template_process()
  */
 ?>
-<div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
+<div class="<?php dpm(get_defined_vars()); print implode(' ', $classes); ?> clearfix"<?php print backdrop_attributes($attributes); ?>>
 
   <?php if (!$page): ?>
-    <h2<?php print $title_attributes; ?>>
+    <h2>
         <a href="<?php print $url; ?>"><?php print $title; ?></a>
     </h2>
   <?php endif; ?>
 
-  <div class="content"<?php print $content_attributes; ?>>
+  <div class="content"<?php print backdrop_attributes($content_attributes); ?>>
     <?php
       print render($content);
     ?>

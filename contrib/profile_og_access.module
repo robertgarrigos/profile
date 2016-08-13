@@ -2,16 +2,16 @@
 
 /**
  * @file
- * Profile2 og access integration module.
+ * Profile og access integration module.
  */
 
 /**
  * Implements hook_og_permission().
  */
-function profile2_og_access_og_permission() {
+function profile_og_access_og_permission() {
   $permissions = array();
   // Generate per profile type permissions.
-  foreach (profile2_get_types() as $type) {
+  foreach (profile_get_types() as $type) {
     $type_name = check_plain($type->type);
     $permissions += array(
       "edit any $type_name profile" => array(
@@ -26,15 +26,15 @@ function profile2_og_access_og_permission() {
 }
 
 /**
- * Implements hook_profile2_access().
+ * Implements hook_profile_access().
  *
- * @see profile2_profile2_access()
+ * @see profile_profile_access()
  */
-function profile2_og_access_profile2_access($op, $profile = NULL, $account = NULL) {
+function profile_og_access_profile_access($op, $profile = NULL, $account = NULL) {
   if (isset($profile) && ($type_name = $profile->type) && $profile->identifier() && $op != 'delete') {
     // Only return TRUE if og grants access. So other modules may still grant
     // access in case og does not.
-    if (og_user_access_entity("$op any $type_name profile", 'profile2', $profile, $account)) {
+    if (og_user_access_entity("$op any $type_name profile", 'profile', $profile, $account)) {
       return TRUE;
     }
   }

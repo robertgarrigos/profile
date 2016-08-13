@@ -1,11 +1,11 @@
 
 --------------------------------------------------------------------------------
-                              Profile2
+                              Profile
 --------------------------------------------------------------------------------
 
 Maintainers: 
  * Wolfgang Ziegler (fago), nuppla@zites.net
- * Joachim Noreiko (joachim), joachim.n+drupal@gmail.com
+ * Joachim Noreiko (joachim), joachim.n+backdrop@gmail.com
 
 
 This modules is designed to be the successor of the core profile module. In
@@ -16,7 +16,7 @@ entity - leverage the power of fields!
 Installation
 -------------
 
- * Copy the whole profile2 directory to your modules directory and
+ * Copy the whole profile directory to your modules directory and
    activate the module.
 
 
@@ -43,7 +43,7 @@ allowing your users to view and edit their profile.
 Installation
 -------------
 
- * Once profile2 is installed, just active the profile pages module.
+ * Once profile is installed, just active the profile pages module.
 
 
 Usage
@@ -60,5 +60,5 @@ Usage
 --------------------------------------------------------------------------------
 
   * Automatic profile labels can be easily generated based upon a pre-configured
-    pattern using the Rules module. See http://drupal.org/node/1392716 for more
+    pattern using the Rules module. See http://backdrop.org/node/1392716 for more
     details.

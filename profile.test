@@ -3,30 +3,30 @@
 /**
  * Test basic CRUD functionality.
  */
-class Profile2CRUDTestCase extends DrupalWebTestCase {
+class ProfileCRUDTestCase extends BackdropWebTestCase {
 
   public static function getInfo() {
     return array(
       'name' => 'Editing profiles',
-      'description' => 'Tests basic CRUD and editing of Profile2 profiles.',
-      'group' => 'Profile2',
+      'description' => 'Tests basic CRUD and editing of Profile profiles.',
+      'group' => 'Profile',
     );
   }
 
   function setUp() {
-    parent::setUp('profile2', 'locale');
+    parent::setUp('profile', 'locale');
 
-    profile2_type_save(new ProfileType(array(
+    profile_type_save(new ProfileType(array(
       'type' => 'test',
       'label' => 'label',
       'weight' => 0
     )));
-    profile2_type_save(new ProfileType(array(
+    profile_type_save(new ProfileType(array(
       'type' => 'test2',
       'label' => 'label2',
       'weight' => 2
     )));
-    profile2_load_multiple(FALSE, array(), TRUE);
+    profile_load_multiple(FALSE, array(), TRUE);
 
     // Add a field to main type, which is created during module installation.
     $field = array(
@@ -37,7 +37,7 @@ class Profile2CRUDTestCase extends DrupalWebTestCase {
     );
     field_create_field($field);
     $instance = array(
-      'entity_type' => 'profile2',
+      'entity_type' => 'profile',
       'field_name' => 'profile_fullname',
       'bundle' => 'main',
       'label' => 'Full name',
@@ -54,36 +54,36 @@ class Profile2CRUDTestCase extends DrupalWebTestCase {
    * Tests CRUD for a profile related to a user and one unrelated to a user.
    */
   function testCRUD() {
-    $user1 = $this->drupalCreateUser();
+    $user1 = $this->backdropCreateUser();
     // Create profiles for the user1 and unrelated to a user.
-    profile2_save(profile2_create(array('type' => 'test', 'uid' => $user1->uid)));
-    profile2_save(profile2_create(array('type' => 'test2', 'uid' => $user1->uid)));
-    $profile = profile2_create(array('type' => 'test', 'uid' => NULL));
-    profile2_save($profile);
+    profile_save(profile_create(array('type' => 'test', 'uid' => $user1->uid)));
+    profile_save(profile_create(array('type' => 'test2', 'uid' => $user1->uid)));
+    $profile = profile_create(array('type' => 'test', 'uid' => NULL));
+    profile_save($profile);
 
-    $profiles = profile2_load_by_user($user1);
+    $profiles = profile_load_by_user($user1);
     $this->assertEqual($profiles['test']->label(), 'label', 'Created and loaded profile 1.');
     $this->assertEqual($profiles['test2']->label(), 'label2', 'Created and loaded profile 2.');
 
     // Test looking up from static cache works also.
-    $profiles = profile2_load_by_user($user1);
+    $profiles = profile_load_by_user($user1);
     $this->assertEqual($profiles['test']->label, 'label', 'Looked up profiles again.');
 
-    $loaded = profile2_load($profile->pid);
+    $loaded = profile_load($profile->pid);
     $this->assertEqual($loaded->pid, $profile->pid, 'Loaded profile unrelated to a user.');
 
-    profile2_delete($profiles['test']);
-    $profiles2 = profile2_load_by_user($user1);
+    profile_delete($profiles['test']);
+    $profiles2 = profile_load_by_user($user1);
     $this->assertEqual(array_keys($profiles2), array('test2'), 'Profile successfully deleted.');
 
-    profile2_save($profiles2['test2']);
+    profile_save($profiles2['test2']);
     $this->assertEqual($profiles['test2']->pid, $profiles2['test2']->pid, 'Profile successfully updated.');
 
     // Delete a profile type.
-    profile2_type_delete(profile2_get_types('test'));
+    profile_type_delete(profile_get_types('test'));
     // Try deleting multiple profiles by deleting all existing profiles.
-    $pids = array_keys(profile2_load_multiple(FALSE));
-    profile2_delete_multiple($pids);
+    $pids = array_keys(profile_load_multiple(FALSE));
+    profile_delete_multiple($pids);
   }
 
   /**
@@ -91,46 +91,46 @@ class Profile2CRUDTestCase extends DrupalWebTestCase {
    */
   function testRegistrationIntegration() {
     // Allow registration by site visitors without administrator approval.
-    variable_set('user_register', 1);
+    config_set('system.core', 'user_register', 1);
     $edit = array();
     $edit['name'] = $name = $this->randomName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $edit['profile_main[profile_fullname][und][0][value]'] = $this->randomName();
-    $this->drupalPost('user/register', $edit, t('Create new account'));
+    $this->backdropPost('user/register', $edit, t('Create new account'));
     $this->assertText(t('A welcome message with further instructions has been sent to your e-mail address.'), t('User registered successfully.'));
     $return = user_load_multiple(array(), array('name' => $name, 'mail' => $mail));
     $new_user = reset($return);
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
-    $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile created.');
+    $this->assertEqual(profile_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile created.');
   }
 
   /**
    * Test basic edit and display.
    */
   function testEditAndDisplay() {
-    user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
-    $user1 = $this->drupalCreateUser();
-    $this->drupalLogin($user1);
+    user_role_revoke_permissions(BACKDROP_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
+    $user1 = $this->backdropCreateUser();
+    $this->backdropLogin($user1);
     // Make sure access is denied to the profile.
-    $this->drupalGet('user/' . $user1->uid . '/edit/main');
+    $this->backdropGet('user/' . $user1->uid . '/edit/main');
     $this->assertText(t('Access denied'), 'Access has been denied.');
 
     // Test creating a profile manually (e.g. by an admin) and ensure the user
     // may not see it.
-    profile2_create(array('type' => 'main', 'uid' => $user1->uid))->save();
-    $this->drupalGet('user/' . $user1->uid);
+    profile_create(array('type' => 'main', 'uid' => $user1->uid))->save();
+    $this->backdropGet('user/' . $user1->uid);
     $this->assertNoText(t('Main profile'), 'Profile data is not visible to the owner.');
 
-    $user2 = $this->drupalCreateUser(array('edit own main profile', 'view own main profile'));
-    $this->drupalLogin($user2);
+    $user2 = $this->backdropCreateUser(array('edit own main profile', 'view own main profile'));
+    $this->backdropLogin($user2);
 
     // Create profiles for the user2.
     $edit['profile_main[profile_fullname][und][0][value]'] = $this->randomName();
-    $this->drupalPost('user/' . $user2->uid . '/edit/main', $edit, t('Save'));
+    $this->backdropPost('user/' . $user2->uid . '/edit/main', $edit, t('Save'));
     $this->assertText(t('The changes have been saved.'), 'Profile saved.');
-    $this->assertEqual(profile2_load_by_user($user2, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile edited.');
+    $this->assertEqual(profile_load_by_user($user2, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile edited.');
 
-    $this->drupalGet('user/' . $user2->uid);
+    $this->backdropGet('user/' . $user2->uid);
     $this->assertText(check_plain($edit['profile_main[profile_fullname][und][0][value]']), 'Profile displayed.');
   }
 
@@ -139,25 +139,25 @@ class Profile2CRUDTestCase extends DrupalWebTestCase {
    */
   function testAccess() {
     global $user;
-    $admin_user = $this->drupalCreateUser(array('administer profiles'));
-    $user2 = $this->drupalCreateUser();
+    $admin_user = $this->backdropCreateUser(array('administer profiles'));
+    $user2 = $this->backdropCreateUser();
     // Create profiles for the admin user.
-    $profile = profile2_create(array('type' => 'test', 'uid' => $admin_user->uid));
-    profile2_save($profile);
+    $profile = profile_create(array('type' => 'test', 'uid' => $admin_user->uid));
+    profile_save($profile);
 
     // Make sure access is denied to the profile.
-    $this->drupalLogin($user2);
-    $this->drupalGet('user/' . $admin_user->uid . '/edit/main');
+    $this->backdropLogin($user2);
+    $this->backdropGet('user/' . $admin_user->uid . '/edit/main');
     $this->assertText(t('Access denied'), 'Access has been denied.');
 
     // Set the global user to ensure the defaults are respected.
     $user = $user2;
 
     // Ensure optional parameters check access for the current logged in user.
-    $this->assertFalse(profile2_access('edit'), 'No edit access for user 2');
+    $this->assertFalse(profile_access('edit'), 'No edit access for user 2');
 
     // Ensure optional parameters check access for the admin user.
-    $this->assertTrue(profile2_access('edit', NULL, $admin_user), 'No edit access for user 1');
+    $this->assertTrue(profile_access('edit', NULL, $admin_user), 'No edit access for user 1');
   }
 
 }

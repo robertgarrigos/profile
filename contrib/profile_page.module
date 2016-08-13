@@ -8,39 +8,39 @@
 /**
  * Implements hook_menu().
  */
-function profile2_page_menu() {
+function profile_page_menu() {
   $items = array();
 
-  // Bugfix for uninstalling the module, see http://drupal.org/node/1008346.
-  if (!module_exists('profile2')) {
+  // Bugfix for uninstalling the module, see http://backdrop.org/node/1008346.
+  if (!module_exists('profile')) {
     return;
   }
 
-  foreach (profile2_get_types() as $type_name => $type) {
+  foreach (profile_get_types() as $type_name => $type) {
     if (!empty($type->data['use_page'])) {
-      $path = profile2_page_get_base_path($type);
+      $path = profile_page_get_base_path($type);
       $count = count(explode('/', $path));
 
       $items[$path] = array(
-        'title callback' => 'profile2_page_title',
+        'title callback' => 'profile_page_title',
         'title arguments' => array($type_name),
-        'page callback' => 'profile2_page_own',
+        'page callback' => 'profile_page_own',
         'page arguments' => array($path),
         'access callback' => 'user_access',
         'access arguments' => array("view own $type_name profile"),
-        'file' => 'profile2_page.inc',
+        'file' => 'profile_page.inc',
         'menu_name' => 'user-menu',
       );
 
-      $items[$path . '/%profile2_by_uid'] = array(
-        'title callback' => 'profile2_page_title',
+      $items[$path . '/%profile_by_uid'] = array(
+        'title callback' => 'profile_page_title',
         'title arguments' => array($type_name, $count),
-        'page callback' => 'profile2_page_view',
+        'page callback' => 'profile_page_view',
         'page arguments' => array($count),
         'load arguments' => array($type_name),
-        'access callback' => 'profile2_access',
+        'access callback' => 'profile_access',
         'access arguments' => array('view', $count),
-        'file' => 'profile2_page.inc',
+        'file' => 'profile_page.inc',
         // Copied over the following hack from user_menu() to avoid $path
         // appearing in the breadcrumb:
         //
@@ -52,55 +52,55 @@ function profile2_page_menu() {
         // not be in the breadcrumb.
         'menu_name' => 'navigation',
       );
-      $items[$path . '/%profile2_by_uid/view'] = array(
+      $items[$path . '/%profile_by_uid/view'] = array(
         'title' => 'View',
         'type' => MENU_DEFAULT_LOCAL_TASK,
         'load arguments' => array($type_name),
         'weight' => -10,
       );
-      $items[$path . '/%profile2_by_uid/edit'] = array(
+      $items[$path . '/%profile_by_uid/edit'] = array(
         'page callback' => 'entity_ui_get_form',
-        'page arguments' => array('profile2', $count),
+        'page arguments' => array('profile', $count),
         'load arguments' => array($type_name),
-        'access callback' => 'profile2_access',
+        'access callback' => 'profile_access',
         'access arguments' => array('edit', $count),
         'title' => 'Edit',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-        'file' => 'profile2_page.inc',
+        'file' => 'profile_page.inc',
       );
-      $items[$path . '/%profile2_by_uid/delete'] = array(
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('profile2_page_delete_confirm_form', $count),
+      $items[$path . '/%profile_by_uid/delete'] = array(
+        'page callback' => 'backdrop_get_form',
+        'page arguments' => array('profile_page_delete_confirm_form', $count),
         'load arguments' => array($type_name),
-        'access callback' => 'profile2_access',
+        'access callback' => 'profile_access',
         'access arguments' => array('delete', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_INLINE,
-        'file' => 'profile2_page.inc',
+        'file' => 'profile_page.inc',
       );
       // Devel integration.
       if (module_exists('devel')) {
-        $devel_path = drupal_get_path('module', 'devel');
-        $items[$path . '/%profile2_by_uid/devel'] = array(
+        $devel_path = backdrop_get_path('module', 'devel');
+        $items[$path . '/%profile_by_uid/devel'] = array(
           'title' => 'Devel',
           'page callback' => 'devel_load_object',
           'file' => 'devel.pages.inc',
           'file path' => $devel_path,
-          'page arguments' => array('profile2', $count),
+          'page arguments' => array('profile', $count),
           'access arguments' => array('access devel information'),
           'type' => MENU_LOCAL_TASK,
           'weight' => 100,
         );
-        $items[$path . '/%profile2_by_uid/devel/load'] = array(
+        $items[$path . '/%profile_by_uid/devel/load'] = array(
           'title' => 'Load',
           'type' => MENU_DEFAULT_LOCAL_TASK,
         );
-        $items[$path . '/%profile2_by_uid/devel/render'] = array(
+        $items[$path . '/%profile_by_uid/devel/render'] = array(
           'title' => 'Render',
           'page callback' => 'devel_render_object',
-          'page arguments' => array('profile2', $count),
+          'page arguments' => array('profile', $count),
           'access arguments' => array('access devel information'),
           'file' => 'devel.pages.inc',
           'file path' => $devel_path,
@@ -119,11 +119,11 @@ function profile2_page_menu() {
  * Returns the profile object for the given user. If there is none yet, a new
  * object is created.
  */
-function profile2_by_uid_load($uid, $type_name) {
+function profile_by_uid_load($uid, $type_name) {
   if ($uid && is_numeric($uid) && ($account = user_load($uid))) {
-    $profile = profile2_load_by_user($account, $type_name);
+    $profile = profile_load_by_user($account, $type_name);
     if (!$profile) {
-      $profile = profile2_create(array('type' => $type_name));
+      $profile = profile_create(array('type' => $type_name));
       $profile->setUser($account);
       $profile->is_new = TRUE;
     }
@@ -135,7 +135,7 @@ function profile2_by_uid_load($uid, $type_name) {
 /**
  * Returns the base path to use as profile page.
  */
-function profile2_page_get_base_path($profile_type) {
+function profile_page_get_base_path($profile_type) {
   // Allow for an easy customization of the page's base path.
   if (!empty($profile_type->data['page_path'])) {
     return $profile_type->data['page_path'];
@@ -146,28 +146,28 @@ function profile2_page_get_base_path($profile_type) {
 /**
  * Implements hook_forms().
  */
-function profile2_page_forms($form_id, $args) {
-  // For efficiency, only act if the third argument is 'profile2'.
-  if (isset($args[2]) && is_string($args[2]) && $args[2] == 'profile2') {
-    $info = entity_get_info('profile2');
-    // Translate bundle form ids to the base form id 'profile2_form'.
+function profile_page_forms($form_id, $args) {
+  // For efficiency, only act if the third argument is 'profile'.
+  if (isset($args[2]) && is_string($args[2]) && $args[2] == 'profile') {
+    $info = entity_get_info('profile');
+    // Translate bundle form ids to the base form id 'profile_form'.
     foreach ($info['bundles'] as $bundle => $bundle_info) {
-      $forms['profile2_edit_' . $bundle . '_form']['callback'] = 'profile2_form';
-      $forms['profile2_edit_' . $bundle . '_form']['wrapper callback'] = 'entity_ui_form_defaults';
+      $forms['profile_edit_' . $bundle . '_form']['callback'] = 'profile_form';
+      $forms['profile_edit_' . $bundle . '_form']['wrapper callback'] = 'entity_ui_form_defaults';
     }
     if (!empty($forms)) {
-      // Include the file with profile2_form() callback. This needed when the
+      // Include the file with profile_form() callback. This needed when the
       // form is loaded from the outside, for example, from the ajax callback.
-      form_load_include($form_state, 'inc', 'profile2_page');
+      form_load_include($form_state, 'inc', 'profile_page');
       return $forms;
     }
   }
 }
 
 /**
- * Implements hook_profile2_type_load().
+ * Implements hook_profile_type_load().
  */
-function profile2_page_profile2_type_load($types) {
+function profile_page_profile_type_load($types) {
   foreach ($types as $type) {
     if (!empty($type->data['use_page'])) {
       // Disable user categories and the user account view.
@@ -180,35 +180,35 @@ function profile2_page_profile2_type_load($types) {
 /**
  * Implements hook_entity_info_alter().
  */
-function profile2_page_entity_info_alter(&$entity_info) {
+function profile_page_entity_info_alter(&$entity_info) {
   // Add new view modes for the page.
-  $entity_info['profile2']['view modes']['page'] = array(
+  $entity_info['profile']['view modes']['page'] = array(
     'label' => t('Profile page'),
      'custom settings' => FALSE,
   );
-  $entity_info['profile2']['view modes']['teaser'] = array(
+  $entity_info['profile']['view modes']['teaser'] = array(
     'label' => t('Teaser'),
     'custom settings' => FALSE,
   );
-  $entity_info['profile2']['uri callback'] = 'profile2_page_uri_callback';
-  $entity_info['profile2']['form callback'] = 'profile2_page_form_callback';
+  $entity_info['profile']['uri callback'] = 'profile_page_uri_callback';
+  $entity_info['profile']['form callback'] = 'profile_page_form_callback';
 
   // Integrate with Metatag module to enable metatags support for separate
   // profile pages.
   if (module_exists('metatag')) {
-    $entity_info['profile2']['metatags'] = TRUE;
+    $entity_info['profile']['metatags'] = TRUE;
   }
 }
 
 /**
  * URI callback pointing to the profile page.
  *
- * @see profile2_pages_entity_info_alter()
+ * @see profile_pages_entity_info_alter()
  */
-function profile2_page_uri_callback($profile) {
+function profile_page_uri_callback($profile) {
   $type = $profile->type();
   if (!empty($type->data['use_page'])) {
-    return array('path' => profile2_page_get_base_path($type) . '/' . $profile->uid);
+    return array('path' => profile_page_get_base_path($type) . '/' . $profile->uid);
   }
   // Fall back to the default callback.
   return $profile->defaultUri();
@@ -217,31 +217,31 @@ function profile2_page_uri_callback($profile) {
 /**
  * Form callback for entity_form().
  */
-function profile2_page_form_callback($profile) {
+function profile_page_form_callback($profile) {
   // Pre-populate the form-state with the right form include.
   $form_state = form_state_defaults();
-  form_load_include($form_state, 'inc', 'profile2_page');
-  return entity_ui_get_form('profile2', $profile, 'edit', $form_state);
+  form_load_include($form_state, 'inc', 'profile_page');
+  return entity_ui_get_form('profile', $profile, 'edit', $form_state);
 }
 
 /**
  * Menu title callback.
  */
-function profile2_page_title($type_name, $profile2 = NULL) {
-  $type = profile2_get_types($type_name);
+function profile_page_title($type_name, $profile = NULL) {
+  $type = profile_get_types($type_name);
   // If no profile is given, we are at the general path pointing to the own
   // profile.
-  if (!isset($profile2)) {
-    return t('My @profile-label', array('@profile-label' => drupal_strtolower($type->getTranslation('label'))));
+  if (!isset($profile)) {
+    return t('My @profile-label', array('@profile-label' => backdrop_strtolower($type->getTranslation('label'))));
   }
-  return drupal_ucfirst($profile2->label());
+  return backdrop_ucfirst($profile->label());
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for the profile2 type form..
+ * Implements hook_form_FORM_ID_alter() for the profile type form..
  */
-function profile2_page_form_profile2_type_form_alter(&$form, &$form_state) {
-  $type = $form_state['profile2_type'];
+function profile_page_form_profile_type_form_alter(&$form, &$form_state) {
+  $type = $form_state['profile_type'];
   $form['data']['use_page'] = array(
     '#type' => 'checkbox',
     '#title' => t('Provide a separate page for editing profiles.'),
@@ -252,34 +252,34 @@ function profile2_page_form_profile2_type_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Implements hook_profile2_type_insert().
+ * Implements hook_profile_type_insert().
  */
-function profile2_page_profile2_type_insert(ProfileType $type) {
+function profile_page_profile_type_insert(ProfileType $type) {
   // Do not directly issue menu rebuilds here to avoid potentially multiple
   // rebuilds. Instead, let menu_get_item() issue the rebuild on the next page.
   if (!empty($type->data['use_page'])) {
-    variable_set('menu_rebuild_needed', TRUE);
+    state_set('menu_rebuild_needed', TRUE);
   }
 }
 
 /**
- * Implements hook_profile2_type_update().
+ * Implements hook_profile_type_update().
  */
-function profile2_page_profile2_type_update(ProfileType $type) {
+function profile_page_profile_type_update(ProfileType $type) {
   // Rebuild the menu if use_page or the type name has been changed.
-  // @see profile2_page_profile2_type_insert()
+  // @see profile_page_profile_type_insert()
   if (empty($type->data['use_page']) != empty($type->original->data['use_page']) || (!empty($type->data['use_page']) &&  $type->type != $type->original->type)) {
-    variable_set('menu_rebuild_needed', TRUE);
+    state_set('menu_rebuild_needed', TRUE);
   }
 }
 
 /**
- * Implements hook_profile2_type_delete()
+ * Implements hook_profile_type_delete()
  */
-function profile2_page_profile2_type_delete($type) {
+function profile_page_profile_type_delete($type) {
   // Do not directly issue menu rebuilds here to avoid potentially multiple
   // rebuilds. Instead, let menu_get_item() issue the rebuild on the next page.
   if (!empty($type->data['use_page'])) {
-    variable_set('menu_rebuild_needed', TRUE);
+    state_set('menu_rebuild_needed', TRUE);
   }
 }

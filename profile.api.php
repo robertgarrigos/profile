@@ -4,7 +4,7 @@
  * @file
  * This file contains no working PHP code; it exists to provide additional
  * documentation for doxygen as well as to document hooks in the standard
- * Drupal manner.
+ * Backdrop manner.
  */
 
 /**
@@ -19,11 +19,11 @@
 * entity_load(), via the EntityCRUDController.
 *
 * @param $entities
-*   An array of profile2 entities being loaded, keyed by id.
+*   An array of profile entities being loaded, keyed by id.
 *
 * @see hook_entity_load()
 */
-function hook_profile2_load($entities) {
+function hook_profile_load($entities) {
   $result = db_query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', array(':ids' => array_keys($entities)));
   foreach ($result as $record) {
     $entities[$record->pid]->foo = $record->foo;
@@ -40,7 +40,7 @@ function hook_profile2_load($entities) {
 *
 * @see hook_entity_insert()
 */
-function hook_profile2_insert($profile) {
+function hook_profile_insert($profile) {
   db_insert('mytable')
     ->fields(array(
       'pid' => $profile->pid,
@@ -59,7 +59,7 @@ function hook_profile2_insert($profile) {
 *
 * @see hook_entity_presave()
 */
-function hook_profile2_presave($profile) {
+function hook_profile_presave($profile) {
   $profile->extra = 'foo';
 }
 
@@ -73,7 +73,7 @@ function hook_profile2_presave($profile) {
 *
 * @see hook_entity_update()
 */
-function hook_profile2_update($profile) {
+function hook_profile_update($profile) {
   db_update('mytable')
     ->fields(array('extra' => $profile->extra))
     ->condition('pid', $profile->pid)
@@ -90,7 +90,7 @@ function hook_profile2_update($profile) {
 *
 * @see hook_entity_delete()
 */
-function hook_profile2_delete($profile) {
+function hook_profile_delete($profile) {
   db_delete('mytable')
     ->condition('pid', $profile->pid)
     ->execute();
@@ -108,12 +108,12 @@ function hook_profile2_delete($profile) {
 *
 * The module may add elements to $profile->content prior to rendering. The
 * structure of $profile->content is a renderable array as expected by
-* drupal_render().
+* backdrop_render().
 *
 * @see hook_entity_prepare_view()
 * @see hook_entity_view()
 */
-function hook_profile2_view($profile, $view_mode, $langcode) {
+function hook_profile_view($profile, $view_mode, $langcode) {
   $profile->content['my_additional_field'] = array(
     '#markup' => $additional_field,
     '#weight' => 10,
@@ -133,12 +133,12 @@ function hook_profile2_view($profile, $view_mode, $langcode) {
 *
 * If the module wishes to act on the rendered HTML of the profile rather than
 * the structured content array, it may use this hook to add a #post_render
-* callback. Alternatively, it could also implement hook_preprocess_profile2().
-* See drupal_render() and theme() documentation respectively for details.
+* callback. Alternatively, it could also implement hook_preprocess_profile().
+* See backdrop_render() and theme() documentation respectively for details.
 *
 * @see hook_entity_view_alter()
 */
-function hook_profile2_view_alter($build) {
+function hook_profile_view_alter($build) {
   if ($build['#view_mode'] == 'full' && isset($build['an_additional_field'])) {
     // Change its weight.
     $build['an_additional_field']['#weight'] = -10;
@@ -157,7 +157,7 @@ function hook_profile2_view_alter($build) {
  * @param $types
  *   An array of profiles being loaded, keyed by profile type names.
  */
-function hook_profile2_type_load($types) {
+function hook_profile_type_load($types) {
   if (isset($types['main'])) {
     $types['main']->userCategory = FALSE;
     $types['main']->userView = FALSE;
@@ -172,7 +172,7 @@ function hook_profile2_type_load($types) {
  * @param $type
  *   The profile type that is being inserted.
  */
-function hook_profile2_type_insert($type) {
+function hook_profile_type_insert($type) {
   db_insert('mytable')
     ->fields(array(
       'id' => $type->id,
@@ -189,7 +189,7 @@ function hook_profile2_type_insert($type) {
  * @param $type
  *   The profile type that is being inserted or updated.
  */
-function hook_profile2_type_presave($type) {
+function hook_profile_type_presave($type) {
   $type->extra = 'foo';
 }
 
@@ -201,7 +201,7 @@ function hook_profile2_type_presave($type) {
  * @param $type
  *   The profile type that is being updated.
  */
-function hook_profile2_type_update($type) {
+function hook_profile_type_update($type) {
   db_update('mytable')
     ->fields(array('extra' => $type->extra))
     ->condition('id', $type->id)
@@ -217,7 +217,7 @@ function hook_profile2_type_update($type) {
  * @param $type
  *   The profile type that is being deleted.
  */
-function hook_profile2_type_delete($type) {
+function hook_profile_type_delete($type) {
   db_delete('mytable')
     ->condition('id', $type->id)
     ->execute();
@@ -229,7 +229,7 @@ function hook_profile2_type_delete($type) {
  * @return
  *   An array of default profile types, keyed by profile type names.
  */
-function hook_default_profile2_type() {
+function hook_default_profile_type() {
   $types['main'] = new ProfileType(array(
       'type' => 'main',
       'label' => t('Profile'),
@@ -245,18 +245,18 @@ function hook_default_profile2_type() {
 * @param $defaults
 *   An array of default profile types, keyed by type names.
 *
-* @see hook_default_profile2_type()
+* @see hook_default_profile_type()
 */
-function hook_default_profile2_type_alter(&$defaults) {
+function hook_default_profile_type_alter(&$defaults) {
   $defaults['main']->label = 'custom label';
 }
 
 /**
- * Alter profile2 forms.
+ * Alter profile forms.
  *
- * Modules may alter the profile2 entity form regardless to which form it is
+ * Modules may alter the profile entity form regardless to which form it is
  * attached by making use of this hook or the profile type specifiy
- * hook_form_profile2_edit_PROFILE_TYPE_form_alter(). #entity_builders may be
+ * hook_form_profile_edit_PROFILE_TYPE_form_alter(). #entity_builders may be
  * used in order to copy the values of added form elements to the entity, just
  * as described by entity_form_submit_build_entity().
  *
@@ -265,9 +265,9 @@ function hook_default_profile2_type_alter(&$defaults) {
  * @param $form_state
  *   A keyed array containing the current state of the form.
  *
- * @see profile2_attach_form()
+ * @see profile_attach_form()
  */
-function hook_form_profile2_form_alter(&$form, &$form_state) {
+function hook_form_profile_form_alter(&$form, &$form_state) {
   // Your alterations.
 }
 
@@ -292,9 +292,9 @@ function hook_form_profile2_form_alter(&$form, &$form_state) {
  *   Access is granted as soon as a module grants access and no one denies
  *   access. Thus if no module explicitly grants access, access will be denied.
  *
- * @see profile2_access()
+ * @see profile_access()
  */
-function hook_profile2_access($op, $profile = NULL, $account = NULL) {
+function hook_profile_access($op, $profile = NULL, $account = NULL) {
   if (isset($profile)) {
     // Explicitly deny access for a 'secret' profile type.
     if ($profile->type == 'secret' && !user_access('custom permission')) {

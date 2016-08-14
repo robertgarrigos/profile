@@ -159,7 +159,7 @@ function hook_profile_view_alter($build) {
  */
 function hook_profile_type_load($types) {
   if (isset($types['main'])) {
-    $types['main']->userView = FALSE;
+    $types['main']->userview = FALSE;
   }
 }
 

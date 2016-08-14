@@ -431,7 +431,7 @@ function profile_profile_type_delete($type) {
  */
 function profile_user_view($account, $view_mode, $langcode) {
   foreach (profile_get_types() as $type => $profile_type) {
-    if ($profile_type->userView && $profile = profile_load_by_user($account, $type)) {
+    if ($profile_type->userview && $profile = profile_load_by_user($account, $type)) {
       if (profile_access('view', $profile)) {
         $account->content['profile_' . $type] = array(
           '#type' => 'item',
@@ -892,7 +892,7 @@ function profile_field_extra_fields() {
   $extra = array();
   foreach (profile_get_types() as $type_name => $type) {
     // Appears on: admin/config/people/accounts/display
-    if (!empty($type->userView)) {
+    if (!empty($type->userview)) {
       $extra['user']['user']['display']['profile_' . $type_name] = array(
         'label' => t('Profile: @profile', array('@profile' => $type->label)),
         'weight' => $type->weight,

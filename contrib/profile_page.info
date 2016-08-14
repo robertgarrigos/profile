@@ -1,5 +1,0 @@
-name = Profile pages
-description = Adds separate pages for viewing and editing profiles.
-backdrop = 1.x
-dependencies[] = profile
-type = module

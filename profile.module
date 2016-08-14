@@ -803,8 +803,6 @@ function profile_access($op, $profile = NULL, $account = NULL) {
  */
 function profile_profile_access($op, $profile = NULL, $account = NULL) {
   // Don't grant access for users to delete their profile.
-  dpm($profile);
-    dpm("$op any $type_name profile");
   if (isset($profile) && ($type_name = $profile->type) && $op != 'delete') {
     if (user_access("$op any $type_name profile", $account)) {
       return TRUE;

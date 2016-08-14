@@ -76,7 +76,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#weight' => 10,
   );
 
-  if ($profile_type->storage == PROFILE_STORAGE_DEFAULT && $op != 'add' && $op != 'clone') {
+  if ($profile_type->storage === PROFILE_STORAGE_NORMAL && $op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete profile type'),
@@ -107,7 +107,6 @@ function profile_type_form_submit(&$form, &$form_state) {
  * Form API submit callback for the delete button.
  */
 function profile_type_form_submit_delete(&$form, &$form_state) {
-  dpm($form);
   $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form['#profile_type']->type . '/delete';
 }
 

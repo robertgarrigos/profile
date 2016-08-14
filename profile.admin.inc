@@ -10,8 +10,9 @@
  */
 function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
   if (!isset($profile_type) && $op == 'add') {
-    $profile_type = entity_create('profile_type', array());
+    $profile_type = profile_type_set_defaults();
   }
+  $form['#profile_type'] = $profile_type;
   $form['profile_type'] = array(
     '#value' => $profile_type,
     '#type' => 'value',
@@ -35,7 +36,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#type' => 'machine_name',
     '#default_value' => isset($profile_type->type) ? $profile_type->type : '',
     '#maxlength' => 32,
-    '#disabled' => ($profile_type->storage != PROFILE_STORAGE_DEFAULT) && $op != 'clone',
+    '#disabled' => ($profile_type->storage == PROFILE_STORAGE_DEFAULT) && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'profile_get_types',
       'source' => array('label'),
@@ -75,7 +76,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#weight' => 10,
   );
 
-  if ($profile_type->storage != PROFILE_STORAGE_DEFAULT && $op != 'add' && $op != 'clone') {
+  if ($profile_type->storage == PROFILE_STORAGE_DEFAULT && $op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete profile type'),
@@ -106,7 +107,29 @@ function profile_type_form_submit(&$form, &$form_state) {
  * Form API submit callback for the delete button.
  */
 function profile_type_form_submit_delete(&$form, &$form_state) {
-  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['profile_type']->type . '/delete';
+  dpm($form);
+  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form['#profile_type']->type . '/delete';
+}
+
+/**
+ * Form API submit callback for the delete button.
+ */
+function profile_type_delete_form($form, &$form_state, $profile_type) {
+  $form_state['profile_type'] = $profile_type;
+  $confirm_question = t('Are you sure you want to delete the %label profile type?', array('%label' => $profile_type->label));
+  return confirm_form($form, $confirm_question, 'admin/structure/profiles');
+}
+
+/**
+ * Form API submit callback for the delete button.
+ */
+function profile_type_delete_form_submit($form, &$form_state) {
+  profile_type_delete($form_state['profile_type']);
+
+  backdrop_set_message(t('The profile type %name has been deleted.', array('%name' => $form_state['profile_type']->type)));
+
+  $form_state['redirect'] = 'admin/structure/profiles/manage';
+  return;
 }
 
 /**
@@ -142,10 +165,10 @@ function profile_type_overview_form_row($id, $entity) {
   $row[] = $entity->label;
 
   // Add a row for the exportable status.
-  if ($entity->status === PROFILE_STORAGE_OVERRIDE) {
+  if ($entity->storage === PROFILE_STORAGE_OVERRIDE) {
     $storage = t('Overridden');
   }
-  elseif ($entity->status === PROFILE_STORAGE_DEFAULT) {
+  elseif ($entity->storage === PROFILE_STORAGE_DEFAULT) {
     $storage = t('Default (module-provided)');
   }
   else {

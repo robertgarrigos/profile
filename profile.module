@@ -146,10 +146,10 @@ function profile_menu() {
     'access arguments' => array('create', 4),
     'file' => 'profile.admin.inc',
   );
-  // Menu item for operations like revert and delete.
-  $items['admin/structure/profiles/manage/%profile_type/%'] = array(
+  // Delete form.
+  $items['admin/structure/profiles/manage/%profile_type/delete'] = array(
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('profile_type_operation_form', 4, 5),
+    'page arguments' => array('profile_type_delete_form', 4),
     'access callback' => 'profile_access',
     'access arguments' => array('delete', 4),
     'file' => 'profile.admin.inc',
@@ -405,22 +405,24 @@ function profile_type_save($type) {
 }
 
 /**
- * Deletes a profile type from.
+ * Deletes a profile type from config.
  */
-function profile_type_delete(ProfileType $type) {
-  $type->delete();
+function profile_type_delete($type) {
+  $config = config('profile.profile.' . $type->type);
+  $config->delete();
+  field_attach_delete_bundle('profile', $type->type);
+  module_invoke_all('profile_type_delete', $type);
+
+  backdrop_static_reset('profile_get_types');
 }
 
 /**
  * Implements hook_profile_type_delete()
  */
-function profile_profile_type_delete(ProfileType $type) {
-  // Delete all profiles of this type but only if this is not a revert.
-  if (!$type->hasStatus(ENTITY_IN_CODE)) {
-    $pids = array_keys(profile_load_multiple(FALSE, array('type' => $type->type)));
-    if ($pids) {
-      profile_delete_multiple($pids);
-    }
+function profile_profile_type_delete($type) {
+  $pids = array_keys(profile_load_multiple(FALSE, array('type' => $type->type)));
+  if ($pids) {
+    profile_delete_multiple($pids);
   }
 }
 
@@ -964,16 +966,16 @@ function _profile_get_operations($id, $profile) {
     'title' => t('Edit'),
     'href' => 'admin/structure/profiles/manage/' . $id,
   );
-  if ($profile->status !== 'fixed') {
     $links['clone'] = array(
       'title' => t('Clone'),
       'href' => 'admin/structure/profiles/manage/' . $id . '/clone',
     );
+  if ($profile->storage !== PROFILE_STORAGE_DEFAULT) {
+    $links['delete'] = array(
+      'title' => t('Delete'),
+      'href' => 'admin/structure/profiles/manage/' . $id . '/delete',
+    );
   }
-  $links['delete'] = array(
-    'title' => t('Delete'),
-    'href' => 'admin/structure/profiles/manage/' . $id . '/delete',
-  );
   $links['fields'] = array(
     'title' => t('Manage fields'),
     'href' => 'admin/structure/profiles/manage/' . $id . '/fields',
@@ -1034,3 +1036,28 @@ function profile_config_info() {
   );
   return $prefixes;
 }
+
+/**
+ * Sets the default values for a profile type.
+ *
+ * @return
+ *   A profile type object.
+ */
+function profile_type_set_defaults() {
+  $new_type = array(
+    'type' => '',
+    'label' => '',
+    'data' => array(
+      'registration' => 1,
+      'roles' => array(),
+    ),
+    'module' => 'node',
+    'weight' => 0,
+    'storage' => PROFILE_STORAGE_NORMAL,
+    'status' => PROFILE_STATUS_ENABLED,
+  );
+  $new_type = (object) $new_type;
+
+  return $new_type;
+}
+

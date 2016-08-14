@@ -399,7 +399,7 @@ function profile_type_save($type) {
     $function($this->name, $data);
   }
 
-  config('profile.profile.' . $data['type'])
+  config('profile.type.' . $data['type'])
     ->setData($data)
     ->save();
 }
@@ -408,7 +408,7 @@ function profile_type_save($type) {
  * Deletes a profile type from config.
  */
 function profile_type_delete($type) {
-  $config = config('profile.profile.' . $type->type);
+  $config = config('profile.type.' . $type->type);
   $config->delete();
   field_attach_delete_bundle('profile', $type->type);
   module_invoke_all('profile_type_delete', $type);
@@ -1024,7 +1024,7 @@ function template_preprocess_profile(&$variables) {
  * Implements hook_config_info().
  */
 function profile_config_info() {
-  $prefixes['profile.profile'] = array(
+  $prefixes['profile.type'] = array(
     'name_key' => 'type',
     'label_key' => 'label',
     'group' => t('Profile types'),

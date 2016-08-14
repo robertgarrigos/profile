@@ -1,6 +1,5 @@
 {
     "_config_name": "profile.type.main",
-    "userCategory": true,
     "userView": true,
     "type": "main",
     "label": "Main profile",

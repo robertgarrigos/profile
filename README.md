@@ -1,20 +1,7 @@
-This is not yet ready! Dont use in production
-================
+Profile
+========
 
-
---------------------------------------------------------------------------------
-                              Profile
---------------------------------------------------------------------------------
-
-Maintainers: 
- * Wolfgang Ziegler (fago), nuppla@zites.net
- * Joachim Noreiko (joachim), joachim.n+backdrop@gmail.com
-
-
-This modules is designed to be the successor of the core profile module. In
-contrast to the core module this module provides a new, fieldable 'profile'
-entity - leverage the power of fields!
-
+Supports configurable user profiles.
 
 Installation
 -------------
@@ -30,38 +17,17 @@ Usage
  * By default users may view their profile at /user and edit them at
    'user/X/edit'.
 
+LICENSE
+---------------    
 
+This project is GPL v2 software. See the LICENSE.txt file in this directory 
+for complete text.
 
---------------------------------------------------------------------------------
-                              Profile pages
---------------------------------------------------------------------------------
-Maintainers: 
+Credits:
+----------
+Ported by docwlmot
+
+Original Drupal maintained module by
  * Wolfgang Ziegler (fago), nuppla@zites.net
- 
-This module provides an alternative way for your users to edit their profiles.
-Instead of integrating with the user account page, it generates a separate page
-allowing your users to view and edit their profile.
+ * Joachim Noreiko (joachim), joachim.n+backdrop@gmail.com
 
-
-Installation
--------------
-
- * Once profile is installed, just active the profile pages module.
-
-
-Usage
------
- * The module may be enabled per profile-type by checking the checkbox
-   "Provide a separate page for editing profiles." in the profile type's
-   settings.
- * Users with sufficient permissions (check user permissions) receive a menu
-   item in their user menu, just beside the "My account" menu item.
-
-
---------------------------------------------------------------------------------
-                               General notes
---------------------------------------------------------------------------------
-
-  * Automatic profile labels can be easily generated based upon a pre-configured
-    pattern using the Rules module. See http://backdrop.org/node/1392716 for more
-    details.

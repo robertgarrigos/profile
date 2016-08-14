@@ -6,11 +6,9 @@
     "label": "Main profile",
     "weight": "0",
     "id": "1",
-    "data": {
-        "registration": 0,
-        "roles": {
-            "administrator": "administrator"
-        }
+    "registration": 0,
+    "roles": {
+        "authenticated": "authenticated"
     },
     "status": "1",
     "storage": "4",

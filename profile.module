@@ -922,10 +922,7 @@ function profile_user_get_properties($account, array $options, $name) {
 
 function profile_autoload_info() {
   return array(
-  'ProfileMetadataController' => 'profile.info.inc',
-  'Profile' => 'profile.entity.inc',
-  'ProfileType' => 'profile.entity.inc',
-  'ProfileTypeUIController' => 'profile.entity.inc',
+    'Profile' => 'profile.entity.inc',
   );
 }
 
@@ -1045,10 +1042,8 @@ function profile_type_set_defaults() {
   $new_type = array(
     'type' => '',
     'label' => '',
-    'data' => array(
-      'registration' => 1,
-      'roles' => array(),
-    ),
+    'registration' => 1,
+    'roles' => array(),
     'module' => 'node',
     'weight' => 0,
     'storage' => PROFILE_STORAGE_NORMAL,

@@ -44,22 +44,21 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#description' => t('A unique machine-readable name for this profile type. It must only contain lowercase letters, numbers, and underscores.'),
   );
 
-  $form['data']['#tree'] = TRUE;
-  $form['data']['registration'] = array(
+  $form['registration'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show during user account registration.'),
-    '#default_value' => !empty($profile_type->data['registration']),
+    '#default_value' => !empty($profile_type->registration),
   );
 
   $user_roles = user_roles();
   // Exclude anonymous user role.
   unset($user_roles[BACKDROP_ANONYMOUS_ROLE]);
-  $form['data']['roles'] = array(
+  $form['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Roles'),
     '#description' => t('Check user roles that should have this profile.'),
     '#options' => $user_roles,
-    '#default_value' => !empty($profile_type->data['roles']) ? $profile_type->data['roles'] : array_keys($user_roles)
+    '#default_value' => !empty($profile_type->roles) ? $profile_type->roles : array_keys($user_roles)
   );
 
   $form['actions'] = array('#type' => 'actions');
@@ -93,11 +92,12 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
  * Form API submit callback for the type form.
  */
 function profile_type_form_submit(&$form, &$form_state) {
-  $form_state['values']['data']['roles'] = array_filter($form_state['values']['data']['roles']);
+  $form_state['values']['roles'] = array_filter($form_state['values']['roles']);
   $profile_type = $form_state['values']['profile_type'];
   $profile_type->label = $form_state['values']['label'];
   $profile_type->type = $form_state['values']['type'];
-  $profile_type->data = $form_state['values']['data'];
+  $profile_type->roles = $form_state['values']['roles'];
+  $profile_type->registration = $form_state['values']['registration'];
 
   profile_type_save($profile_type);
   $form_state['redirect'] = 'admin/structure/profiles';

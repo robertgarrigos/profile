@@ -1040,11 +1040,12 @@ function profile_config_info() {
  */
 function profile_type_set_defaults() {
   $new_type = array(
+    'userview' => true,
     'type' => '',
     'label' => '',
     'registration' => 1,
     'roles' => array(),
-    'module' => 'node',
+    'module' => null,
     'weight' => 0,
     'storage' => PROFILE_STORAGE_NORMAL,
     'status' => PROFILE_STATUS_ENABLED,

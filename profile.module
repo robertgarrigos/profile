@@ -97,9 +97,6 @@ function profile_type_load($type) {
  * Implements hook_forms().
  */
 function profile_forms() {
-  // Let the "Edit profile" form share the same callback as "Edit account", so
-  // it displays the same data by default but we can alter them separately in
-  // hook_form_FORM_ID_alter().
   $forms['profile_user_profile_form'] = array(
     'callback' => 'user_profile_form',
   );
@@ -524,13 +521,6 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
   }
 
   if ($profile_display == 'tabs' && $form_id == 'profile_user_profile_form' && $type_name && isset($profile_types[$type_name])) {
-    // Hide all user fields when displaying the main "Edit account" form. (We
-    // need to explicitly check that we aren't on the "Edit profile" form or on a
-    // different category under "Edit account", since this alter hook gets called
-    // in those contexts also.)
-    // $type_name = 'big_profile';
-    // Hide all form elements when displaying the "Edit profile" form, except
-    // user fields and other elements needed for the form to function.
     $field_names = array_keys(field_info_instances('user', 'user'));
     $form_fields_to_keep = array_merge($field_names, array('actions', 'form_build_id', 'form_token', 'form_id'));
     foreach (element_children($form) as $key) {
@@ -551,11 +541,6 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
     }
     $form_state['profiles'][$profile->type] = $profile;
      profile_attach_form($form, $form_state);
-    // Wrap each profile form in a fieldset.
-    $form['profile_' . $type_name] += array(
-      '#type' => 'fieldset',
-      '#title' => check_plain($profile->label),
-    );
   }
   else {
     foreach (profile_get_types() as $type_name => $profile_type) {

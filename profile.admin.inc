@@ -118,9 +118,12 @@ function profile_type_form_submit(&$form, &$form_state) {
   $profile_type->label = $form_state['values']['label'];
   $profile_type->type = $form_state['values']['type'];
   $profile_type->roles = $form_state['values']['roles'];
+  $profile_type->weight = $form_state['values']['weight'];
   $profile_type->registration = $form_state['values']['registration'];
 
   profile_type_save($profile_type);
+  // Clear menu cache so profile edit tabs adopt new weights.
+  menu_rebuild();
   $form_state['redirect'] = 'admin/structure/profiles';
 }
 

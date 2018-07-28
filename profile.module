@@ -130,7 +130,7 @@ function profile_menu() {
     'title' => 'Edit account',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('user_profile_form', 1),
-    'weight' => -5,
+    'weight' => -30,
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file path' => backdrop_get_path('module', 'user'),
     'file' => 'user.pages.inc',

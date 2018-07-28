@@ -170,7 +170,7 @@ function profile_menu() {
   );
   $items['admin/structure/profiles/manage/%profile_type'] = array(
     'title callback' => 'profile_type_title',
-    'title arguments' => array(4),
+    'title arguments' => array(4, 'Edit'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', 4),
     'access callback' => 'profile_access',
@@ -221,7 +221,7 @@ function profile_menu() {
  * Menu callback. Build page title.
  */
 function profile_type_title($type, $op = NULL) {
-  return $op ? t('Edit @title', array('@title' => $type->label)) : t('Clone @title', array('@title' => $type->label));
+  return $op . ' ' . check_plain($type->label);
 }
 
 /**

@@ -85,3 +85,10 @@ function profile_uninstall() {
     field_attach_delete_bundle('profile', $type);
   }
 }
+
+/**
+ * Implements hook_update_N()
+ */
+function profile_update_10000() {
+  config_set('profile.settings', 'profile_display', 'fieldsets');
+}

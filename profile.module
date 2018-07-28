@@ -94,10 +94,59 @@ function profile_type_load($type) {
 }
 
 /**
+ * Implements hook_forms().
+ */
+function profile_forms() {
+  // Let the "Edit profile" form share the same callback as "Edit account", so
+  // it displays the same data by default but we can alter them separately in
+  // hook_form_FORM_ID_alter().
+  $forms['profile_user_profile_form'] = array(
+    'callback' => 'user_profile_form',
+  );
+
+  return $forms;
+}
+
+/**
  * Implements hook_menu().
  */
 function profile_menu() {
   $items = array();
+
+  if (config_get('profile.settings', 'profile_display') == 'tabs') {
+    foreach (profile_get_types() as $type_name => $profile_type) {
+      $items['user/%user/edit/' . $type_name] = array(
+        'title' => $profile_type->label,
+        'weight' => $profile_type->weight,
+        'page callback' => 'backdrop_get_form',
+        'page arguments' => array('profile_user_profile_form', 1, 3),
+        'access callback' => 'profile_user_edit_access',
+        'access arguments' => array(1, 3),
+        'type' => MENU_LOCAL_TASK,
+        'file path' => backdrop_get_path('module', 'user'),
+        'file' => 'user.pages.inc',
+      );
+    }
+  }
+
+  $items['user/%user/edit/account'] = array(
+    'title' => 'Edit account',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('user_profile_form', 1),
+    'weight' => -5,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file path' => backdrop_get_path('module', 'user'),
+    'file' => 'user.pages.inc',
+  );
+
+  $items['admin/config/people/profiles'] = array(
+    'title' => 'Profile display settings',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('profile_display_settings_form'),
+    'description' => 'Profile display settings form.',
+    'access arguments' => array('administer profile'),
+    'file' => 'profile.admin.inc',
+  );
 
   $items['admin/structure/profiles'] = array(
     'title' => 'Profiles',
@@ -179,6 +228,21 @@ function profile_type_title($type, $op = NULL) {
 }
 
 /**
+ * Access callback for editing profiles.
+ */
+function profile_user_edit_access($account, $type_name) {
+  if (!user_edit_access($account)) {
+    return FALSE;
+  }
+
+  if (user_access("edit own $type_name profile") || user_access("edit any $type_name profile")) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
  * Implements hook_permission().
  */
 function profile_permission() {
@@ -224,7 +288,7 @@ function profile_permission() {
 function profile_get_types($type = NULL) {
   $configs = &backdrop_static(__FUNCTION__, array());
   if (empty($configs)) {
-    $config_names = config_get_names_with_prefix('profile');
+    $config_names = config_get_names_with_prefix('profile.type');
     foreach ($config_names as $config_file) {
       $config = config($config_file);
       $data = $config->get();
@@ -451,20 +515,64 @@ function profile_user_view($account, $view_mode, $langcode) {
  * @see profile_form_validate_handler
  * @see profile_form_submit_handler
  */
-function profile_form_user_profile_form_alter(&$form, &$form_state) {
-  foreach (profile_get_types() as $type_name => $profile_type) {
+function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
+  $profile_display = config_get('profile.settings', 'profile_display');
+  $profile_types = profile_get_types();
+  $type_name = NULL;
+  if (isset($form_state['build_info']['args'][1])) {
+    $type_name = $form_state['build_info']['args'][1];
+  }
+
+  if ($profile_display == 'tabs' && $form_id == 'profile_user_profile_form' && $type_name && isset($profile_types[$type_name])) {
+    // Hide all user fields when displaying the main "Edit account" form. (We
+    // need to explicitly check that we aren't on the "Edit profile" form or on a
+    // different category under "Edit account", since this alter hook gets called
+    // in those contexts also.)
+    // $type_name = 'big_profile';
+    // Hide all form elements when displaying the "Edit profile" form, except
+    // user fields and other elements needed for the form to function.
+    $field_names = array_keys(field_info_instances('user', 'user'));
+    $form_fields_to_keep = array_merge($field_names, array('actions', 'form_build_id', 'form_token', 'form_id'));
+    foreach (element_children($form) as $key) {
+      if (!in_array($key, $form_fields_to_keep)) {
+        $form[$key]['#access'] = FALSE;
+      }
+    }
+    // Only show the 'submit' button on this form, and hide any others (such as
+    // 'cancel account').
+    foreach (element_children($form['actions']) as $key) {
+      if ($key != 'submit') {
+        $form['actions'][$key]['#access'] = FALSE;
+      }
+    }
     $profile = profile_load_by_user($form_state['user'], $type_name);
     if (empty($profile)) {
       $profile = profile_create(array('type' => $type_name, 'uid' => $form_state['user']->uid));
-     }
+    }
     $form_state['profiles'][$profile->type] = $profile;
      profile_attach_form($form, $form_state);
     // Wrap each profile form in a fieldset.
     $form['profile_' . $type_name] += array(
       '#type' => 'fieldset',
-      '#title' => check_plain($profile_type->label),
+      '#title' => check_plain($profile->label),
     );
-   }
+  }
+  else {
+    foreach (profile_get_types() as $type_name => $profile_type) {
+      $profile = profile_load_by_user($form_state['user'], $type_name);
+      if (empty($profile)) {
+        $profile = profile_create(array('type' => $type_name, 'uid' => $form_state['user']->uid));
+       }
+      $form_state['profiles'][$profile->type] = $profile;
+       profile_attach_form($form, $form_state);
+      // Wrap each profile form in a fieldset.
+      $form['profile_' . $type_name] += array(
+        '#type' => 'fieldset',
+        '#title' => check_plain($profile_type->label),
+      );
+    }
+  }
+
   return;
 }
 
@@ -926,32 +1034,6 @@ function profile_autoload_info() {
   );
 }
 
-function entity_load_multiple_by_name($entity_type, $names = FALSE, $conditions = array()) {
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'profile_type');
-  if($names) {
-    $query->propertyCondition('name', $names);
-  }
-  $results = $query->execute();
-
-  $entities = entity_load_multiple($entity_type, $names, $conditions);
-
-  $info = entity_get_info($entity_type);
-  if (!isset($info['entity keys']['name'])) {
-    return $entities;
-  }
-  return entity_key_array_by_property($entities, $info['entity keys']['name']);
-}
-
-function entity_key_array_by_property(array $entities, $property) {
-  $ret = array();
-  foreach ($entities as $entity) {
-    $key = isset($entity->$property) ? $entity->$property : NULL;
-    $ret[$key] = $entity;
-  }
-  return $ret;
-}
-
 /**
  * Given a profile, return a list of operations that can be performed on it.
  */
@@ -1028,6 +1110,10 @@ function profile_config_info() {
     'name_key' => 'type',
     'label_key' => 'label',
     'group' => t('Profile types'),
+  );
+  $prefixes['profile.settings'] = array(
+    'label' => t('Profile settings'),
+    'group' => t('Configuration'),
   );
   return $prefixes;
 }

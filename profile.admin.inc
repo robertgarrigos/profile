@@ -8,6 +8,27 @@
 /**
  * Generates the profile type editing form.
  */
+function profile_display_settings_form($form, &$form_state) {
+  $form['#config'] = 'profile.settings';
+  $profile_display = config_get('profile.settings', 'profile_display');
+  $form['profile_display'] = array(
+    '#title' => t('Profile edit display'),
+    '#type' => 'radios',
+    '#options' => array(
+      'tabs' => t('Tabs'),
+      'fieldsets' => t('Fieldsets'),
+    ),
+    '#default_value' => $profile_display,
+    '#description' => t('Display profile edit forms as separate tabs under the account edit tab, or as fieldsets on the account edit page.'),
+  );
+  
+  return system_settings_form($form);
+}
+
+
+/**
+ * Generates the profile type editing form.
+ */
 function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
   if (!isset($profile_type) && $op == 'add') {
     $profile_type = profile_type_set_defaults();

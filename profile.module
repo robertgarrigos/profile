@@ -448,11 +448,28 @@ function profile_save(Profile $profile) {
  * Saves a profile type to config.
  */
 function profile_type_save($type) {
+  if (empty($type->type)) {
+    throw new Exception(t('Profile type key cannot be empty.'));
+  }
   if ($type->storage === PROFILE_STORAGE_DEFAULT) {
     $type->storage = PROFILE_STORAGE_NORMAL;
   }
+  if (empty($type->label)) {
+    $type->label = $type->type;
+  }
 
   $data = (array) $type;
+  $data += array(
+    'userview' => true,
+    'registration' => 1,
+    'roles' => array(
+        'authenticated' => 'authenticated',
+    ),
+    'module' => null,
+    'weight' => '0',
+    'storage' => 1,
+    'status' => 1,
+  );
 
   // Allow modules to act on profile data before saving.
   foreach (module_implements('profile_presave') as $module) {

@@ -5,7 +5,7 @@
     "label": "Main profile",
     "weight": "0",
     "id": "1",
-    "registration": 0,
+    "registration": 1,
     "roles": {
         "authenticated": "authenticated"
     },

@@ -461,7 +461,7 @@ function profile_type_save($type) {
   $data = (array) $type;
   $data += array(
     'userview' => true,
-    'registration' => 1,
+    'registration' => 0,
     'roles' => array(
         'authenticated' => 'authenticated',
     ),
@@ -585,13 +585,14 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
  */
 function profile_form_user_register_form_alter(&$form, &$form_state) {
   foreach (profile_get_types() as $type_name => $profile_type) {
-    if (!empty($profile_type->data['registration'])) {
+    if (!empty($profile_type->registration)) {
       if (empty($form_state['profiles'][$type_name])) {
         $form_state['profiles'][$type_name] = profile_create(array('type' => $type_name));
       }
     }
   }
 
+  debug($form_state['profiles']);
   // If we have profiles to attach to the registration form - then do it.
   if (!empty($form_state['profiles'])) {
     profile_attach_form($form, $form_state);

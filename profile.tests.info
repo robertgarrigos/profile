@@ -1,0 +1,6 @@
+[ProfileCRUDTestCase]
+name = Editing profiles
+description = Tests basic CRUD and editing of Profile profiles.
+group = Profile
+file = profile.test
+

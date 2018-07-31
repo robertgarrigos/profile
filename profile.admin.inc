@@ -21,10 +21,24 @@ function profile_display_settings_form($form, &$form_state) {
     '#default_value' => $profile_display,
     '#description' => t('Display profile edit forms as separate tabs under the account edit tab, or as fieldsets on the account edit page.'),
   );
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save configuration'),
+    '#weight' => 40,
+  );
   
-  return system_settings_form($form);
+  return $form;
 }
 
+/**
+ * Generates the profile type editing form.
+ */
+function profile_display_settings_form_submit($form, &$form_state) {
+  config_set('profile.settings', 'profile_display', $form_state['values']['profile_display']);
+  backdrop_set_message(t('The configuration settings have been saved.'));
+  menu_rebuild();
+}
 
 /**
  * Generates the profile type editing form.

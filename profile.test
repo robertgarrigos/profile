@@ -51,7 +51,7 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
   /**
    * Tests CRUD for a profile related to a user and one unrelated to a user.
    */
-/*   function testCRUD() {
+  function testCRUD() {
     $user1 = $this->backdropCreateUser();
     // Create profiles for the user1 and unrelated to a user.
     profile_save(profile_create(array('type' => 'test', 'uid' => $user1->uid)));
@@ -84,11 +84,11 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
     $pids = array_keys(profile_load_multiple(FALSE));
     profile_delete_multiple($pids);
   }
- */
+
   /**
    * Test registration integration.
    */
-/*   function testRegistrationIntegration() {
+  function testRegistrationIntegration() {
     // Allow registration by site visitors without administrator approval.
     config_set('system.core', 'user_register', USER_REGISTER_VISITORS);
     $edit = array();
@@ -101,12 +101,14 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
     $this->assertEqual(profile_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile created.');
   }
- */
+
   /**
    * Test basic edit and display.
    */
   function testEditAndDisplay() {
     user_role_revoke_permissions(BACKDROP_AUTHENTICATED_ROLE, array('edit own main profile', 'view own main profile'));
+    config_set('profile.settings', 'profile_display', 'tabs');
+    menu_rebuild();
     $user1 = $this->backdropCreateUser();
     $this->backdropLogin($user1);
     // Make sure access is denied to the profile.
@@ -119,7 +121,7 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
     $this->backdropGet('user/' . $user1->uid);
     $this->assertNoText(t('Main profile'), 'Profile data is not visible to the owner.');
 
-    $user2 = $this->backdropCreateUser(array('edit own main profile', 'view own main profile'));
+    $user2 = $this->backdropCreateUser(array('edit any main profile', 'view any main profile'));
     $this->backdropLogin($user2);
 
     // Create profiles for the user2.
@@ -135,7 +137,10 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
   /**
    * Tests optional access parameters.
    */
-/*   function testAccess() {
+  function testAccess() {
+    config_set('profile.settings', 'profile_display', 'tabs');
+    menu_rebuild();
+
     global $user;
     $admin_user = $this->backdropCreateUser(array('administer profiles'));
     $user2 = $this->backdropCreateUser();
@@ -157,5 +162,5 @@ class ProfileCRUDTestCase extends BackdropWebTestCase {
     // Ensure optional parameters check access for the admin user.
     $this->assertTrue(profile_access('edit', NULL, $admin_user), 'No edit access for user 1');
   }
- */
+
 }

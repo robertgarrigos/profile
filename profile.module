@@ -120,8 +120,6 @@ function profile_menu() {
         'access callback' => 'profile_user_edit_access',
         'access arguments' => array(1, $type_name),
         'type' => MENU_LOCAL_TASK,
-        'file path' => backdrop_get_path('module', 'user'),
-        'file' => 'user.pages.inc',
       );
     }
   }
@@ -204,7 +202,7 @@ function profile_menu() {
   // Define page which provides form to generate profiles using
   // Devel generate module.
   if (module_exists('devel')) {
-    $items['admin/config/development/generate/profile'] = array(
+    $items['admin/devel/generate/profile'] = array(
       'title' => 'Generate profiles',
       'description' => 'Generate a given number of profiles for users. Optionally override current user profiles.',
       'access arguments' => array('administer profile'),
@@ -232,8 +230,8 @@ function profile_user_edit_access($account, $type_name) {
     return FALSE;
   }
 
-  $profile_type = profile_type_load($type_name);
-  if (profile_access('update', $profile_type, $account)) {
+  $profile = profile_load_by_user($account, $type_name);
+  if ($profile && profile_access('update', $profile, $account)) {
     return TRUE;
   }
 
@@ -877,7 +875,6 @@ function profile_form_submit_cleanup(&$form, &$form_state) {
  * @see profile_profile_access()
  */
 function profile_access($op, $profile = NULL, $account = NULL) {
-
   // With access to all profiles there is no need to check further.
   if (user_access('administer profiles', $account)) {
     return TRUE;
@@ -924,6 +921,7 @@ function profile_profile_access($op, $profile = NULL, $account = NULL) {
       return TRUE;
     }
     $account = isset($account) ? $account : $GLOBALS['user'];
+
     if (isset($profile->uid) && $profile->uid == $account->uid && user_access("$op own $type_name profile", $account)) {
       return TRUE;
     }

@@ -120,6 +120,8 @@ function profile_menu() {
         'access callback' => 'profile_user_edit_access',
         'access arguments' => array(1, $type_name),
         'type' => MENU_LOCAL_TASK,
+        'file path' => backdrop_get_path('module', 'user'),
+        'file' => 'user.pages.inc',
       );
     }
   }

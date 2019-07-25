@@ -475,7 +475,7 @@ function profile_type_save($type) {
   // Allow modules to act on profile data before saving.
   foreach (module_implements('profile_presave') as $module) {
     $function = $module . '_profile_presave';
-    $function($this->name, $data);
+    $function($type->name, $data);
   }
 
   config('profile.type.' . $data['type'])
@@ -595,7 +595,6 @@ function profile_form_user_register_form_alter(&$form, &$form_state) {
     }
   }
 
-  debug($form_state['profiles']);
   // If we have profiles to attach to the registration form - then do it.
   if (!empty($form_state['profiles'])) {
     profile_attach_form($form, $form_state);

@@ -233,7 +233,10 @@ function profile_user_edit_access($account, $type_name) {
   }
 
   $profile = profile_load_by_user($account, $type_name);
-  if ($profile && profile_access('update', $profile, $account)) {
+  if (empty($profile)) {
+    $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
+   }
+  if (profile_access('edit', $profile, $account)) {
     return TRUE;
   }
 

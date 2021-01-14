@@ -34,7 +34,9 @@ from the Drupal 7 Profile module, you should either convert them to Profile2
 profiles in Drupal 7 prior to upgrading to Backdrop, or recreate them in
 Backdrop after you upgrade.
 
-If you are migrating Drupal 7 Profile2 profiles to Backdrop Profile, you should, however, _enable_ the Drupal 7 Profile module before preparing the db for migration.
+If you are migrating Drupal 7 Profile2 profiles to Backdrop Profile, you should,
+however, _enable_ the Drupal 7 Profile module before preparing the db for
+migration.
 
 Documentation
 -------------

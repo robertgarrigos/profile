@@ -137,10 +137,10 @@ function profile_menu() {
   );
 
   $items['admin/config/people/profiles'] = array(
-    'title' => 'Profile display settings',
+    'title' => 'Profile display',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_display_settings_form'),
-    'description' => 'Profile display settings form.',
+    'description' => 'Configure how profile edit forms are displayed when editing accounts.',
     'access arguments' => array('administer profile'),
     'file' => 'profile.admin.inc',
   );

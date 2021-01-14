@@ -27,7 +27,7 @@ function profile_display_settings_form($form, &$form_state) {
     '#value' => t('Save configuration'),
     '#weight' => 40,
   );
-  
+
   return $form;
 }
 
@@ -119,7 +119,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
       '#submit' => array('profile_type_form_submit_delete')
     );
   }
-  
+
   return $form;
 }
 

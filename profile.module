@@ -137,10 +137,10 @@ function profile_menu() {
   );
 
   $items['admin/config/people/profiles'] = array(
-    'title' => 'Profile display settings',
+    'title' => 'Profile display',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_display_settings_form'),
-    'description' => 'Profile display settings form.',
+    'description' => 'Configure how profile edit forms are displayed when editing accounts.',
     'access arguments' => array('administer profile'),
     'file' => 'profile.admin.inc',
   );
@@ -235,7 +235,7 @@ function profile_user_edit_access($account, $type_name) {
   $profile = profile_load_by_user($account, $type_name);
   if (empty($profile)) {
     $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
-   }
+  }
   if (profile_access('edit', $profile, $account)) {
     return TRUE;
   }
@@ -464,12 +464,12 @@ function profile_type_save($type) {
 
   $data = (array) $type;
   $data += array(
-    'userview' => true,
+    'userview' => TRUE,
     'registration' => 0,
     'roles' => array(
         'authenticated' => 'authenticated',
     ),
-    'module' => null,
+    'module' => NULL,
     'weight' => '0',
     'storage' => 1,
     'status' => 1,
@@ -499,7 +499,7 @@ function profile_type_delete($type) {
 }
 
 /**
- * Implements hook_profile_type_delete()
+ * Implements hook_profile_type_delete().
  */
 function profile_profile_type_delete($type) {
   $pids = array_keys(profile_load_multiple(FALSE, array('type' => $type->type)));
@@ -530,8 +530,8 @@ function profile_user_view($account, $view_mode, $langcode) {
 /**
  * Implements hook_form_FORM_ID_alter() for the user edit form.
  *
- * @see profile_form_validate_handler
- * @see profile_form_submit_handler
+ * @see profile_form_validate_handler()
+ * @see profile_form_submit_handler()
  */
 function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
   $profile_display = config_get('profile.settings', 'profile_display');
@@ -562,7 +562,7 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
         $profile = profile_create(array('type' => $type_name, 'uid' => $form_state['user']->uid));
       }
       $form_state['profiles'][$profile->type] = $profile;
-       profile_attach_form($form, $form_state);
+      profile_attach_form($form, $form_state);
     }
   }
   else {
@@ -570,10 +570,10 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
       $profile = profile_load_by_user($form_state['user'], $type_name);
       if (empty($profile)) {
         $profile = profile_create(array('type' => $type_name, 'uid' => $form_state['user']->uid));
-       }
+      }
       if (profile_access('edit', $profile)) {
         $form_state['profiles'][$profile->type] = $profile;
-         profile_attach_form($form, $form_state);
+        profile_attach_form($form, $form_state);
         // Wrap each profile form in a fieldset.
         $form['profile_' . $type_name] += array(
           '#type' => 'fieldset',
@@ -659,7 +659,7 @@ function profile_attach_form(&$form, &$form_state) {
 
     // Provide a central place for modules to alter the profile forms, but
     // skip that in case the caller cares about invoking the hooks.
-    // @see profile_form().
+    // @see profile_form()
     if (!isset($form_state['profile_skip_hook'])) {
       $hooks[] = 'form_profile_edit_' . $type . '_form';
       $hooks[] = 'form_profile_form';
@@ -1038,6 +1038,9 @@ function profile_user_get_properties($account, array $options, $name) {
 }
 
 
+/**
+ * Return class autoload information.
+ */
 function profile_autoload_info() {
   return array(
     'Profile' => 'profile.entity.inc',
@@ -1136,12 +1139,12 @@ function profile_config_info() {
  */
 function profile_type_set_defaults() {
   $new_type = array(
-    'userview' => true,
+    'userview' => TRUE,
     'type' => '',
     'label' => '',
     'registration' => 1,
     'roles' => array(),
-    'module' => null,
+    'module' => NULL,
     'weight' => 0,
     'storage' => PROFILE_STORAGE_NORMAL,
     'status' => PROFILE_STATUS_ENABLED,

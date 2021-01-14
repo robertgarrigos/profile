@@ -24,15 +24,19 @@ Upgrading from Drupal 7
 -----------------------
 
 This module is the successor to the [Drupal 7 Profile2
-module](https://drupal.org/project/profile2) and will automatically import and
+module](https://drupal.org/project/profile2) and can automatically import and
 convert any Profile2 profiles when upgrading from a Drupal 7 installation.
 
-Note that this module does NOT import from the [deprecated Profile
+Note that this module does _not_ import from the [deprecated Profile
 module](https://www.drupal.org/node/874026) that was provided in Drupal 7 core
 as an upgrade path from Drupal 6 sites that used Profiles. If you have profiles
 from the Drupal 7 Profile module, you should either convert them to Profile2
 profiles in Drupal 7 prior to upgrading to Backdrop, or recreate them in
 Backdrop after you upgrade.
+
+If you are migrating Drupal 7 Profile2 profiles to Backdrop Profile, you should,
+however, _enable_ the Drupal 7 Profile module before preparing the db for
+migration.
 
 Documentation
 -------------
@@ -65,3 +69,4 @@ Credits:
     * [Wolfgang Ziegler (fago)](https://www.drupal.org/u/fago), nuppla@zites.net
     * [Joachim Noreiko (joachim)](https://www.drupal.org/u/joachim), joachim.n+backdrop@gmail.com
 
+``

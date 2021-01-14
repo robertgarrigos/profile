@@ -236,3 +236,11 @@ function profile_update_1001() {
     WHERE name = 'profile2'
     AND type = 'module'");
 }
+
+/**
+ * Drop any leftover D7 Profile module tables.
+ */
+function profile_update_1002() {
+  db_drop_table('profile_field');
+  db_drop_table('profile_value');
+}

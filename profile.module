@@ -141,7 +141,7 @@ function profile_menu() {
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_display_settings_form'),
     'description' => 'Configure how profile edit forms are displayed when editing accounts.',
-    'access arguments' => array('administer profile'),
+    'access arguments' => array('administer profiles'),
     'file' => 'profile.admin.inc',
   );
 
@@ -207,7 +207,7 @@ function profile_menu() {
     $items['admin/devel/generate/profile'] = array(
       'title' => 'Generate profiles',
       'description' => 'Generate a given number of profiles for users. Optionally override current user profiles.',
-      'access arguments' => array('administer profile'),
+      'access arguments' => array('administer profiles'),
       'page callback' => 'backdrop_get_form',
       'page arguments' => array('profile_generate_form'),
       'file' => 'profile.devel.inc',
@@ -571,7 +571,14 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
       if (empty($profile)) {
         $profile = profile_create(array('type' => $type_name, 'uid' => $form_state['user']->uid));
       }
-      if (profile_access('edit', $profile)) {
+      // Add the profile edit form if (a) the user has edit access to the
+      // profile, and (b) the account being edited has a role that gives them
+      // this profile.
+      $account_roles = $form_state['user']->roles;
+      $profile_roles = array_keys($profile_type->roles);
+      $matches = array_intersect($account_roles, $profile_roles);
+      $account_has_role = !empty($matches);
+      if (profile_access('edit', $profile) && $account_has_role) {
         $form_state['profiles'][$profile->type] = $profile;
         profile_attach_form($form, $form_state);
         // Wrap each profile form in a fieldset.

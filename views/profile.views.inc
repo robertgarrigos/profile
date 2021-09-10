@@ -125,7 +125,7 @@ function profile_views_data() {
  * Implements hook_views_data_alter().
  */
 function profile_views_data_alter(&$data) {
-  // Create a relationship field ro profile in the users views. This allows for views to add a relationship to the profile referencing the user  
+  // Create a relationship field to the profile entity in the users Views. This allows for views to add a relationship to the profile referencing the user  
   $data['users']['profile'] = array(
     'title' => 'Profile',
     'help' => t('Associated profile via profile\'s uid'),

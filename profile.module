@@ -1124,3 +1124,12 @@ function profile_type_set_defaults() {
   return $new_type;
 }
 
+/**
+ * Implements hook_views_api().
+ */
+function profile_views_api() {
+  return array(
+    'api' => '3.0',
+    'path' => backdrop_get_path('module', 'profile').'/views',
+  );
+}

@@ -60,6 +60,7 @@ function profile_entity_info() {
       'uri callback' => 'entity_class_uri',
       'access callback' => 'profile_access',
       'module' => 'profile',
+      'metadata controller class' => 'ProfileMetadataController',
     ),
   );
 
@@ -1051,6 +1052,7 @@ function profile_user_get_properties($account, array $options, $name) {
 function profile_autoload_info() {
   return array(
     'Profile' => 'profile.entity.inc',
+    'ProfileMetadataController' => 'profile.info.inc',
   );
 }
 

@@ -38,7 +38,7 @@ function profile_entity_info() {
       'label' => t('Profile'),
       'description' => t('Profile user profiles.'),
       'entity class' => 'Profile',
-      'controller class' => 'EntityDatabaseStorageController',
+      'controller class' => 'EntityPlusController',
       'base table' => 'profile',
       'fieldable' => TRUE,
       'view modes' => array(

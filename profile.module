@@ -38,7 +38,7 @@ function profile_entity_info() {
       'label' => t('Profile'),
       'description' => t('Profile user profiles.'),
       'entity class' => 'Profile',
-      'controller class' => 'EntityPlusController',
+      'controller class' => 'EntityDatabaseStorageController',
       'base table' => 'profile',
       'fieldable' => TRUE,
       'view modes' => array(
@@ -61,6 +61,7 @@ function profile_entity_info() {
       'access callback' => 'profile_access',
       'module' => 'profile',
       'metadata controller class' => 'ProfileMetadataController',
+      'token type' => 'profile',
     ),
   );
 
@@ -79,6 +80,16 @@ function profile_entity_info() {
   }
 
   return $return;
+}
+
+/** 
+ * Implements hook_entity_info_alter().
+ */
+function profile_entity_info_alter(&$entity_info) {
+  // Switch to the controller provided by Entity Plus if available.
+  if (module_exists('entity_plus')) {
+    $entity_info['profile']['controller class'] = 'EntityPlusController';
+  }
 }
 
 /**

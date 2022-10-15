@@ -38,11 +38,6 @@ If you are migrating Drupal 7 Profile2 profiles to Backdrop Profile, you should,
 however, _enable_ the Drupal 7 Profile module before preparing the db for
 migration.
 
-Documentation
--------------
-
-Additional documentation is located in the [Wiki](https://github.com/backdrop-contrib/profile/wiki/Documentation).
-
 Issues
 ------
 

@@ -96,6 +96,13 @@ class Profile extends Entity {
   }
 
   /**
+   * Returns the profile type for this profile.
+   */
+  public function bundle() {
+    return $this->type;
+  }
+
+  /**
    * Returns the full url() for the profile.
    */
   public function url() {

@@ -764,8 +764,8 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
   foreach ($register_ops as $op) {
 
     // Save variable value.
-    if (isset($conf['user_mail_' . $op . '_notify'])) {
-      $changed_ops['user_mail_' . $op . '_notify'] = $conf['user_mail_' . $op . '_notify'];
+    if ($config->get('user_mail_' . $op . '_notify')) {
+      $changed_ops['user_mail_' . $op . '_notify'] = $config->get('user_mail_' . $op . '_notify');
     }
 
     // Temporary disable the notification about registration.
@@ -798,7 +798,7 @@ function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
     // If we changed the notification value in
     // profile_form_before_user_register_submit_handler() then change it back.
     if (isset($changed_ops['user_mail_' . $op . '_notify'])) {
-      $conf['user_mail_' . $op . '_notify'] = $changed_ops['user_mail_' . $op . '_notify'];
+      $config->set('user_mail_' . $op . '_notify', $changed_ops['user_mail_' . $op . '_notify']);
     }
     // Otherwise just remove this value from a global variables array.
     else {

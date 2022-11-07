@@ -82,7 +82,7 @@ function profile_entity_info() {
   return $return;
 }
 
-/** 
+/**
  * Implements hook_entity_info_alter().
  */
 function profile_entity_info_alter(&$entity_info) {
@@ -739,13 +739,12 @@ function profile_form_validate_handler(&$form, &$form_state) {
 }
 
 /**
- * User registration form submit handler
- * that executes right before user_register_submit().
+ * User registration form submit handler that executes right before
+ * user_register_submit().
  *
- * In generally, this callback disables the notification emails
- * during the execution of user_register_submit() callback.
- * The reason for this - we want to support profile tokens
- * in emails during registration, and there is no another
+ * This callback disables the notification emails during the execution of the
+ * user_register_submit() callback. The reason for this is that we want to
+ * support profile tokens in emails during registration, and there is no other
  * proper way to do this. See https://backdrop.org/node/1097684.
  *
  * @see profile_form_after_user_register_submit_handler()
@@ -756,29 +755,34 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
   $config = config('system.core');
 
   // List of available operations during the registration.
-  $register_ops = array('register_admin_created', 'register_no_approval_required', 'register_pending_approval');
+  $register_ops = array(
+    'register_admin_created',
+    'register_no_approval_required',
+    'register_pending_approval',
+  );
 
-  // We also have to track if we change a variables, because
-  // later we have to restore them.
+  // We also have to track if we change a variables, because later we have to
+  // restore them.
   $changed_ops = &backdrop_static('profile_register_changed_operations', array());
   foreach ($register_ops as $op) {
 
     // Save variable value.
-    if ($config->get('user_mail_' . $op . '_notify')) {
-      $changed_ops['user_mail_' . $op . '_notify'] = $config->get('user_mail_' . $op . '_notify');
+    $register_op = 'user_mail_' . $op . '_notify';
+    if ($config->get($register_op)) {
+      $changed_ops[$register_op] = $config->get($register_op);
     }
 
     // Temporary disable the notification about registration.
-    $config->set('user_mail_' . $op . '_notify', FALSE);
+    $config->set($register_op, FALSE);
   }
 }
 
 /**
- * User registration form submit handler
- * that executes right after user_register_submit().
+ * User registration form submit handler that executes right after
+ * user_register_submit().
  *
  * This callback sends delayed email notification to a user
- * about his registration. See https://backdrop.org/node/1097684.
+ * about their registration. See https://backdrop.org/node/1097684.
  *
  * @see profile_form_prepare_user_register_submit_handler()
  * @see user_register_submit()
@@ -787,22 +791,27 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
 function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
   $config = config('system.core');
 
-  // List of registration operations that where
-  // notification values were changed.
+  // List of registration operations where notification values were changed.
   $changed_ops = &backdrop_static('profile_register_changed_operations', array());
 
   // List of available operations during the registration.
-  $register_ops = array('register_admin_created', 'register_no_approval_required', 'register_pending_approval');
+  $register_ops = array(
+    'register_admin_created',
+    'register_no_approval_required',
+    'register_pending_approval',
+  );
   foreach ($register_ops as $op) {
 
     // If we changed the notification value in
     // profile_form_before_user_register_submit_handler() then change it back.
-    if (isset($changed_ops['user_mail_' . $op . '_notify'])) {
-      $config->set('user_mail_' . $op . '_notify', $changed_ops['user_mail_' . $op . '_notify']);
+    $register_op = 'user_mail_' . $op . '_notify';
+    if (isset($changed_ops[$register_op])) {
+      $config->set($register_op, $changed_ops[$register_op]);
     }
-    // Otherwise just remove this value from a global variables array.
+    // Otherwise, if we didn't change it, then it was originally TRUE, so make
+    // it so.
     else {
-      $config->set('user_mail_' . $op . '_notify', TRUE);
+      $config->set($register_op, TRUE);
     }
   }
 

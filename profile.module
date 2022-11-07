@@ -753,7 +753,7 @@ function profile_form_validate_handler(&$form, &$form_state) {
  * @see profile_attach_form()
  */
 function profile_form_before_user_register_submit_handler(&$form, &$form_state) {
-  global $conf;
+  $config = config('system.core');
 
   // List of available operations during the registration.
   $register_ops = array('register_admin_created', 'register_no_approval_required', 'register_pending_approval');
@@ -764,12 +764,12 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
   foreach ($register_ops as $op) {
 
     // Save variable value.
-    if (isset($conf['user_mail_' . $op . '_notify'])) {
-      $changed_ops['user_mail_' . $op . '_notify'] = $conf['user_mail_' . $op . '_notify'];
+    if ($config->get('user_mail_' . $op . '_notify')) {
+      $changed_ops['user_mail_' . $op . '_notify'] = $config->get('user_mail_' . $op . '_notify');
     }
 
     // Temporary disable the notification about registration.
-    $conf['user_mail_' . $op . '_notify'] = FALSE;
+    $config->set('user_mail_' . $op . '_notify', FALSE);
   }
 }
 
@@ -785,7 +785,7 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
  * @see profile_attach_form()
  */
 function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
-  global $conf;
+  $config = config('system.core');
 
   // List of registration operations that where
   // notification values were changed.
@@ -798,11 +798,11 @@ function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
     // If we changed the notification value in
     // profile_form_before_user_register_submit_handler() then change it back.
     if (isset($changed_ops['user_mail_' . $op . '_notify'])) {
-      $conf['user_mail_' . $op . '_notify'] = $changed_ops['user_mail_' . $op . '_notify'];
+      $config->set('user_mail_' . $op . '_notify', $changed_ops['user_mail_' . $op . '_notify']);
     }
     // Otherwise just remove this value from a global variables array.
     else {
-      unset($conf['user_mail_' . $op . '_notify']);
+      $config->set('user_mail_' . $op . '_notify', TRUE);
     }
   }
 

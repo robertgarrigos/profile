@@ -554,8 +554,7 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
 
   if ($profile_display == 'tabs') {
     if ($form_id == 'profile_user_profile_form' && $type_name && isset($profile_types[$type_name])) {
-      $field_names = array_keys(field_info_instances('user', 'user'));
-      $form_fields_to_keep = array_merge($field_names, array('actions', 'form_build_id', 'form_token', 'form_id'));
+      $form_fields_to_keep = array('actions', 'form_build_id', 'form_token', 'form_id');
       foreach (element_children($form) as $key) {
         if (!in_array($key, $form_fields_to_keep)) {
           $form[$key]['#access'] = FALSE;

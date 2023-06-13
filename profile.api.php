@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * This file contains no working PHP code; it exists to provide additional

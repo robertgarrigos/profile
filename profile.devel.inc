@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Profile type editing UI.

@@ -52,6 +52,12 @@ class Profile extends Entity {
    */
   public $changed;
 
+  /**
+   * The language under which the profile item is stored.
+   *
+   * @var string
+   */
+  public $langcode = LANGUAGE_NONE;
 
   public function __construct(array $values = array()) {
     if (isset($values['user'])) {

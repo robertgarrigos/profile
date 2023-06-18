@@ -1,6 +1,8 @@
 {
     "_config_name": "profile.type.main",
-    "_config_translatables" : "label",
+    "_config_translatables" : [
+      "label"
+    ],
     "userview": true,
     "type": "main",
     "label": "Main profile",

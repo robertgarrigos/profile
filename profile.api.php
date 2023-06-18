@@ -307,5 +307,15 @@ function hook_profile_access($op, $profile = NULL, $account = NULL) {
 }
 
 /**
+ * Alter the operation dropdown button in the Profile Type table.
+ */
+function hook__profile_get_operations_alter(&$links, $id) {
+  $links['translate'] = array(
+    'title' => t('Translate'),
+    'href' => 'admin/structure/profiles/manage/' . $id . '/translate',
+  );
+}
+
+/**
  * @}
  */

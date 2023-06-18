@@ -1109,6 +1109,9 @@ function _profile_get_operations($id, $profile) {
     'href' => 'admin/structure/profiles/manage/' . $id . '/display',
   );
 
+  // Allow other modules to alter the operations (e.g. for adding ops).
+  backdrop_alter('_profile_get_operations', $links, $id);
+
   return $links;
 }
 

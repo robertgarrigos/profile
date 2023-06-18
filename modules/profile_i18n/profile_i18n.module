@@ -77,3 +77,15 @@ function profile_i18n_title_callback($profile_type_name) {
   $title = config_get_translated("profile.type.{$profile_type->type}", 'label', array(), array('context' => "profile_type:{$profile_type->type}:label"));
   return check_plain($title);
 }
+
+/**
+ * Implements hook___profile_get_operations_alter().
+ * 
+ * Adds the Translate operation to the profile type dropbutton.
+ */
+function profile_i18n__profile_get_operations_alter(&$links, $id) {
+  $links['translate'] = array(
+    'title' => t('Translate'),
+    'href' => 'admin/structure/profiles/manage/' . $id . '/translate',
+  );
+}

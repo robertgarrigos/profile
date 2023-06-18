@@ -50,6 +50,8 @@ function profile_i18n_i18n_object_info() {
 /** 
  * Implements hook_i18n_string_objects().
  */
-function profile_i18n_i18n_string_objects() {
-  return profile_get_types();
+function profile_i18n_i18n_string_objects($type) {
+  if ($type == 'profile_type') {
+    return profile_get_types();
+  }
 }

@@ -57,7 +57,7 @@ function profile_i18n_profile_type_update($profile_type) {
 }
 
 /**
- * Implements hook_profil2_type_delete().
+ * Implements hook_profile_type_delete().
  */
 function profile_i18n_profile_type_delete($profile_type) {
   i18n_string_object_remove('profile_type', $profile_type);
@@ -79,7 +79,7 @@ function profile_i18n_title_callback($profile_type_name) {
 }
 
 /**
- * Implements hook___profile_get_operations_alter().
+ * Implements hook__profile_get_operations_alter().
  * 
  * Adds the Translate operation to the profile type dropbutton.
  */

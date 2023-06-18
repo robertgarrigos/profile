@@ -1,0 +1,91 @@
+<?php
+/**
+ * @file
+ * Profile i18n integration module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function profile_i18n_menu() {
+  $items['admin/structure/profiles/manage/%profile_type/translate'] = array(
+    'title' => 'Translate',
+    'page callback' => 'profile_i18n_page_translate',
+    'page arguments' => array(4),
+    'file' => 'profile_i18n.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access arguments' => array('administer profile types'),
+  );
+  $items['admin/structure/profiles/manage/%profile_type/translate/%i18n_language'] = array(
+    'title' => 'Profile type',
+    'page callback' => 'profile_i18n_page_translate',
+    'page arguments' => array(4, 6),
+    'file' => 'profile_i18n.pages.inc',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('administer profile types'),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function profile_i18n_menu_alter(&$items) {
+  if (config_get('profile.settings', 'profile_display') == 'tabs') {
+    foreach (profile_get_types() as $type_name => $profile_type) {
+      $items['user/%user/edit/' . $type_name]['title callback'] = 'profile_i18n_title_callback';
+      $items['user/%user/edit/' . $type_name]['title arguments'] = array($type_name);
+    }
+  }
+}
+/**
+ * Implements hook_profile_type_insert().
+ */
+function profile_i18n_profile_type_insert($profile_type) {
+  i18n_string_object_update('profile_type', $profile_type);
+}
+
+/**
+ * Implements hook_profile_type_update().
+ */
+function profile_i18n_profile_type_update($profile_type) {
+  // Account for name changes.
+  if ($profile_type->original->type != $profile_type->type) {
+    i18n_string_update_context("profile2:profile2_type:{$profile_type->original->type}:*", "profile2:profile2_type:{$profile_type->type}:*");
+  }
+  i18n_string_object_update('profile_type', $profile_type);
+}
+
+/**
+ * Implements hook_profile_type_delete().
+ */
+function profile_i18n_profile_type_delete($profile_type) {
+  i18n_string_object_remove('profile_type', $profile_type);
+}
+
+/**
+ * Menu title callback for profile types.
+ * 
+ * @param string $profile_type_name
+ *  The profile type machine name.
+ * 
+ * @return string
+ *  The translated title.
+ */
+function profile_i18n_title_callback($profile_type_name) {
+  $profile_type = profile_type_load($profile_type_name);
+  $title = config_get_translated("profile.type.{$profile_type->type}", 'label', array(), array('context' => "profile_type:{$profile_type->type}:label"));
+  return check_plain($title);
+}
+
+/**
+ * Implements hook__profile_get_operations_alter().
+ * 
+ * Adds the Translate operation to the profile type dropbutton.
+ */
+function profile_i18n__profile_get_operations_alter(&$links, $id) {
+  $links['translate'] = array(
+    'title' => t('Translate'),
+    'href' => 'admin/structure/profiles/manage/' . $id . '/translate',
+  );
+}

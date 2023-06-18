@@ -484,6 +484,9 @@ function profile_type_save($type) {
     'weight' => '0',
     'storage' => 1,
     'status' => 1,
+    '_config_translatables' => array(
+      'label',
+    ),
   );
 
   // Allow modules to act on profile data before saving.
@@ -526,9 +529,10 @@ function profile_user_view($account, $view_mode, $langcode) {
   foreach (profile_get_types() as $type => $profile_type) {
     if ($profile_type->userview && $profile = profile_load_by_user($account, $type)) {
       if (profile_access('view', $profile)) {
+        $label = config_get_translated("profile.type.$type", 'label', array(), array('context' => "profile_type:$type:label"));
         $account->content['profile_' . $type] = array(
           '#type' => 'item',
-          '#title' => $profile_type->label,
+          '#title' => check_plain($label),
           '#prefix' => '<a id="profile-' . $profile->type . '"></a>',
         );
         $render = $profile->view('account');
@@ -592,9 +596,10 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
         $form_state['profiles'][$profile->type] = $profile;
         profile_attach_form($form, $form_state);
         // Wrap each profile form in a fieldset.
+        $label = config_get_translated("profile.type.$type_name", 'label', array(), array('context' => "profile_type:$type_name:label"));
         $form['profile_' . $type_name] += array(
           '#type' => 'fieldset',
-          '#title' => check_plain($profile_type->label),
+          '#title' => check_plain($label),
         );
       }
     }
@@ -621,9 +626,10 @@ function profile_form_user_register_form_alter(&$form, &$form_state) {
 
     // Wrap each profile form in a fieldset.
     foreach ($form_state['profiles'] as $type_name => $profile_type) {
+      $label = config_get_translated("profile.type.$type_name", 'label', array(), array('context' => "profile_type:$type_name:label"));
       $form['profile_' . $type_name] += array(
         '#type' => 'fieldset',
-        '#title' => check_plain($profile_type->label),
+        '#title' => check_plain($label),
       );
     }
   }

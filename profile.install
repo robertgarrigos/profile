@@ -245,7 +245,7 @@ function profile_update_1002() {
 }
 
 /**
- * Add _config_translables property to Profile Type config files.
+ * Add _config_translatables property to Profile Type config files.
  */
 function profile_update_1003() {
   $config_names = config_get_names_with_prefix('profile.type');

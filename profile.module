@@ -750,7 +750,7 @@ function profile_form_validate_handler(&$form, &$form_state) {
  * This callback disables the notification emails during the execution of the
  * user_register_submit() callback. The reason for this is that we want to
  * support profile tokens in emails during registration, and there is no other
- * proper way to do this. See https://backdrop.org/node/1097684.
+ * proper way to do this. See https://drupal.org/node/1097684.
  *
  * @see profile_form_after_user_register_submit_handler()
  * @see user_register_submit()
@@ -780,6 +780,7 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
     // Temporary disable the notification about registration.
     $config->set($register_op, FALSE);
   }
+  $config->save();
 }
 
 /**
@@ -787,7 +788,7 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
  * user_register_submit().
  *
  * This callback sends delayed email notification to a user
- * about their registration. See https://backdrop.org/node/1097684.
+ * about their registration. See https://drupal.org/node/1097684.
  *
  * @see profile_form_prepare_user_register_submit_handler()
  * @see user_register_submit()
@@ -819,6 +820,7 @@ function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
       $config->set($register_op, TRUE);
     }
   }
+  $config->save();
 
   // Get the values that we need to define which notification
   // should be sent to the user. Generally this is a trimmed version

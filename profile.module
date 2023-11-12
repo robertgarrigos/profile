@@ -780,6 +780,7 @@ function profile_form_before_user_register_submit_handler(&$form, &$form_state) 
     // Temporary disable the notification about registration.
     $config->set($register_op, FALSE);
   }
+  $config->save();
 }
 
 /**
@@ -819,6 +820,7 @@ function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
       $config->set($register_op, TRUE);
     }
   }
+  $config->save();
 
   // Get the values that we need to define which notification
   // should be sent to the user. Generally this is a trimmed version

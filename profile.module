@@ -1079,6 +1079,7 @@ function profile_user_get_properties($account, array $options, $name) {
 function profile_autoload_info() {
   return array(
     'Profile' => 'profile.entity.inc',
+    'ProfileBlock' => 'profile.block.inc',
     'ProfileMetadataController' => 'profile.info.inc',
   );
 }
@@ -1164,4 +1165,18 @@ function profile_views_api() {
     'api' => '3.0',
     'path' => backdrop_get_path('module', 'profile').'/views',
   );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function profile_block_info() {
+  $blocks['profile'] = array(
+    'info' => t('Profile block'),
+    'description' => t('Provides Profile data as blocks.'),
+    'class' => 'ProfileBlock',
+    'required contexts' => array('user' => 'user'),
+  );
+
+  return $blocks;
 }

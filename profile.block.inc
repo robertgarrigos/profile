@@ -1,5 +1,4 @@
 <?php
-
 /**
  *  ProfileBlock extends Block
  *
@@ -17,7 +16,8 @@ class ProfileBlock extends Block {
 
     $children = $this->getChildren();
     $title = $children[$this->childDelta]['info'];
-    return strlen($this->settings['title']) ? check_plain($this->settings['title']) : $title;  }
+    return strlen($this->settings['title']) ? check_plain($this->settings['title']) : $title;
+  }
 
   /**
    *  Sets block subject on block view.
@@ -59,7 +59,6 @@ class ProfileBlock extends Block {
         'description' => t('Provides Profile data as blocks.'),
       );
     }
-
     return $blocks;
   }
 }

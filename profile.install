@@ -10,7 +10,6 @@
 function profile_install() {
 }
 
-
 /**
  * Implements hook_schema().
  */
@@ -74,7 +73,6 @@ function profile_schema() {
   return $schema;
 }
 
-
 /**
  * Implements hook_uninstall().
  */
@@ -86,7 +84,6 @@ function profile_uninstall() {
     field_attach_delete_bundle('profile', $type);
   }
 }
-
 
 /**
  * Implements hook_requirements().
@@ -105,7 +102,6 @@ function profile_requirements($phase) {
   return array();
 }
 
-
 /**
  * Implements hook_update_dependencies().
  *
@@ -120,14 +116,12 @@ function profile_update_dependencies() {
     );
 }
 
-
 /**
  * Initialize the profile settings to use fieldsets.
  */
 function profile_update_1000() {
   config_set('profile.settings', 'profile_display', 'fieldsets');
 }
-
 
 /**
  * Migrate any existing Profile2 profiles into this module.

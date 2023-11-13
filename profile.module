@@ -1072,7 +1072,6 @@ function profile_user_get_properties($account, array $options, $name) {
   return $profile ? $profile : NULL;
 }
 
-
 /**
  * Return class autoload information.
  */

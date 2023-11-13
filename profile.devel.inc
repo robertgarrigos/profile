@@ -4,7 +4,6 @@
  * Profile type editing UI.
  */
 
-
 /**
  * Generate profile
  */

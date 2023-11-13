@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides Entity integration.
@@ -52,6 +51,12 @@ class Profile extends Entity {
    */
   public $changed;
 
+  /**
+   * The language under which the profile item is stored.
+   *
+   * @var string
+   */
+  public $langcode = LANGUAGE_NONE;
 
   public function __construct(array $values = array()) {
     if (isset($values['user'])) {
@@ -93,6 +98,13 @@ class Profile extends Entity {
    */
   public function type() {
     return profile_get_types($this->type);
+  }
+
+  /**
+   * Returns the profile type for this profile.
+   */
+  public function bundle() {
+    return $this->type;
   }
 
   /**

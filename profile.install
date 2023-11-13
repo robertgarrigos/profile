@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Install, update and uninstall functions for the profile module.
@@ -243,4 +242,16 @@ function profile_update_1001() {
 function profile_update_1002() {
   db_drop_table('profile_field');
   db_drop_table('profile_value');
+}
+
+/**
+ * Add _config_translatables property to Profile Type config files.
+ */
+function profile_update_1003() {
+  $config_names = config_get_names_with_prefix('profile.type');
+  foreach ($config_names as $config_file) {
+    $config = config($config_file);
+    $config->set('_config_translatables', array('label'));
+    $config->save();
+  }
 }

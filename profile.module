@@ -60,6 +60,8 @@ function profile_entity_info() {
       'uri callback' => 'entity_class_uri',
       'access callback' => 'profile_access',
       'module' => 'profile',
+      'metadata controller class' => 'ProfileMetadataController',
+      'token type' => 'profile',
     ),
   );
 
@@ -78,6 +80,16 @@ function profile_entity_info() {
   }
 
   return $return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function profile_entity_info_alter(&$entity_info) {
+  // Switch to the controller provided by Entity Plus if available.
+  if (module_exists('entity_plus')) {
+    $entity_info['profile']['controller class'] = 'EntityPlusController';
+  }
 }
 
 /**
@@ -472,6 +484,9 @@ function profile_type_save($type) {
     'weight' => '0',
     'storage' => 1,
     'status' => 1,
+    '_config_translatables' => array(
+      'label',
+    ),
   );
 
   // Allow modules to act on profile data before saving.
@@ -514,9 +529,10 @@ function profile_user_view($account, $view_mode, $langcode) {
   foreach (profile_get_types() as $type => $profile_type) {
     if ($profile_type->userview && $profile = profile_load_by_user($account, $type)) {
       if (profile_access('view', $profile)) {
+        $label = config_get_translated("profile.type.$type", 'label', array(), array('context' => "profile_type:$type:label"));
         $account->content['profile_' . $type] = array(
           '#type' => 'item',
-          '#title' => $profile_type->label,
+          '#title' => check_plain($label),
           '#prefix' => '<a id="profile-' . $profile->type . '"></a>',
         );
         $render = $profile->view('account');
@@ -542,8 +558,7 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
 
   if ($profile_display == 'tabs') {
     if ($form_id == 'profile_user_profile_form' && $type_name && isset($profile_types[$type_name])) {
-      $field_names = array_keys(field_info_instances('user', 'user'));
-      $form_fields_to_keep = array_merge($field_names, array('actions', 'form_build_id', 'form_token', 'form_id'));
+      $form_fields_to_keep = array('actions', 'form_build_id', 'form_token', 'form_id');
       foreach (element_children($form) as $key) {
         if (!in_array($key, $form_fields_to_keep)) {
           $form[$key]['#access'] = FALSE;
@@ -581,9 +596,10 @@ function profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
         $form_state['profiles'][$profile->type] = $profile;
         profile_attach_form($form, $form_state);
         // Wrap each profile form in a fieldset.
+        $label = config_get_translated("profile.type.$type_name", 'label', array(), array('context' => "profile_type:$type_name:label"));
         $form['profile_' . $type_name] += array(
           '#type' => 'fieldset',
-          '#title' => check_plain($profile_type->label),
+          '#title' => check_plain($label),
         );
       }
     }
@@ -610,9 +626,10 @@ function profile_form_user_register_form_alter(&$form, &$form_state) {
 
     // Wrap each profile form in a fieldset.
     foreach ($form_state['profiles'] as $type_name => $profile_type) {
+      $label = config_get_translated("profile.type.$type_name", 'label', array(), array('context' => "profile_type:$type_name:label"));
       $form['profile_' . $type_name] += array(
         '#type' => 'fieldset',
-        '#title' => check_plain($profile_type->label),
+        '#title' => check_plain($label),
       );
     }
   }
@@ -727,72 +744,83 @@ function profile_form_validate_handler(&$form, &$form_state) {
 }
 
 /**
- * User registration form submit handler
- * that executes right before user_register_submit().
+ * User registration form submit handler that executes right before
+ * user_register_submit().
  *
- * In generally, this callback disables the notification emails
- * during the execution of user_register_submit() callback.
- * The reason for this - we want to support profile tokens
- * in emails during registration, and there is no another
- * proper way to do this. See https://backdrop.org/node/1097684.
+ * This callback disables the notification emails during the execution of the
+ * user_register_submit() callback. The reason for this is that we want to
+ * support profile tokens in emails during registration, and there is no other
+ * proper way to do this. See https://drupal.org/node/1097684.
  *
  * @see profile_form_after_user_register_submit_handler()
  * @see user_register_submit()
  * @see profile_attach_form()
  */
 function profile_form_before_user_register_submit_handler(&$form, &$form_state) {
-  global $conf;
+  $config = config('system.core');
 
   // List of available operations during the registration.
-  $register_ops = array('register_admin_created', 'register_no_approval_required', 'register_pending_approval');
+  $register_ops = array(
+    'register_admin_created',
+    'register_no_approval_required',
+    'register_pending_approval',
+  );
 
-  // We also have to track if we change a variables, because
-  // later we have to restore them.
+  // We also have to track if we change a variables, because later we have to
+  // restore them.
   $changed_ops = &backdrop_static('profile_register_changed_operations', array());
   foreach ($register_ops as $op) {
 
     // Save variable value.
-    if (isset($conf['user_mail_' . $op . '_notify'])) {
-      $changed_ops['user_mail_' . $op . '_notify'] = $conf['user_mail_' . $op . '_notify'];
+    $register_op = 'user_mail_' . $op . '_notify';
+    if ($config->get($register_op)) {
+      $changed_ops[$register_op] = $config->get($register_op);
     }
 
     // Temporary disable the notification about registration.
-    $conf['user_mail_' . $op . '_notify'] = FALSE;
+    $config->set($register_op, FALSE);
   }
+  $config->save();
 }
 
 /**
- * User registration form submit handler
- * that executes right after user_register_submit().
+ * User registration form submit handler that executes right after
+ * user_register_submit().
  *
  * This callback sends delayed email notification to a user
- * about his registration. See https://backdrop.org/node/1097684.
+ * about their registration. See https://drupal.org/node/1097684.
  *
  * @see profile_form_prepare_user_register_submit_handler()
  * @see user_register_submit()
  * @see profile_attach_form()
  */
 function profile_form_after_user_register_submit_handler(&$form, &$form_state) {
-  global $conf;
+  $config = config('system.core');
 
-  // List of registration operations that where
-  // notification values were changed.
+  // List of registration operations where notification values were changed.
   $changed_ops = &backdrop_static('profile_register_changed_operations', array());
 
   // List of available operations during the registration.
-  $register_ops = array('register_admin_created', 'register_no_approval_required', 'register_pending_approval');
+  $register_ops = array(
+    'register_admin_created',
+    'register_no_approval_required',
+    'register_pending_approval',
+  );
   foreach ($register_ops as $op) {
 
     // If we changed the notification value in
     // profile_form_before_user_register_submit_handler() then change it back.
-    if (isset($changed_ops['user_mail_' . $op . '_notify'])) {
-      $conf['user_mail_' . $op . '_notify'] = $changed_ops['user_mail_' . $op . '_notify'];
+    $register_op = 'user_mail_' . $op . '_notify';
+    if (isset($changed_ops[$register_op])) {
+      $config->set($register_op, $changed_ops[$register_op]);
     }
-    // Otherwise just remove this value from a global variables array.
+    // Otherwise, if we didn't change it, then it was originally TRUE, so make
+    // it so.
     else {
-      unset($conf['user_mail_' . $op . '_notify']);
+      $config->set($register_op, TRUE);
     }
   }
+  $config->save();
 
   // Get the values that we need to define which notification
   // should be sent to the user. Generally this is a trimmed version
@@ -1052,6 +1080,7 @@ function profile_autoload_info() {
   return array(
     'Profile' => 'profile.entity.inc',
     'ProfileBlock' => 'profile.block.inc',
+    'ProfileMetadataController' => 'profile.info.inc',
   );
 }
 
@@ -1082,6 +1111,9 @@ function _profile_get_operations($id, $profile) {
     'title' => t('Manage display'),
     'href' => 'admin/structure/profiles/manage/' . $id . '/display',
   );
+
+  // Allow other modules to alter the operations (e.g. for adding ops).
+  backdrop_alter('_profile_get_operations', $links, $id);
 
   return $links;
 }

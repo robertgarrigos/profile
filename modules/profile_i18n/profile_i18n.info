@@ -1,0 +1,7 @@
+name = Profile translation
+description = Translate the labels of profile types.
+dependencies[] = profile
+dependencies[] = i18n_string
+package = Multilingual - Internationalization
+backdrop = 1.x
+type = module

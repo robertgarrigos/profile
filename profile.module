@@ -157,7 +157,7 @@ function profile_menu() {
   );
 
   $items['admin/structure/profiles'] = array(
-    'title' => 'Profiles',
+    'title' => 'Profile types',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_overview_form', 'profile_type'),
     'description' => 'Manage profiles.',

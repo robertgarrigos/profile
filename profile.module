@@ -171,7 +171,7 @@ function profile_menu() {
     'weight' => -10,
   );
   $items['admin/structure/profiles/add'] = array(
-    'title' => 'Add profile',
+    'title' => 'Add profile type',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('profile_type_form', NULL, 'add'),
     'access callback' => 'profile_access',

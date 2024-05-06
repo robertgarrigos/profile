@@ -46,6 +46,7 @@ function profile_type_form($form, &$form_state, $profile_type, $op = 'edit') {
   if (!isset($profile_type) && $op == 'add') {
     $profile_type = profile_type_set_defaults();
   }
+  backdrop_set_title(t('Add profile type'));
   $form['#profile_type'] = $profile_type;
   $form['profile_type'] = array(
     '#value' => $profile_type,

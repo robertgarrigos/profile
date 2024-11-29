@@ -16,15 +16,15 @@ class ProfileMetadataController extends EntityDefaultMetadataController {
     $properties['label'] = array(
       'label' => t('Label'),
       'description' => t('The profile label.'),
-      'setter callback' => 'entity_property_verbatim_set',
+      'setter callback' => 'entity_plus_property_verbatim_set',
       'setter permission' => 'administer profiles',
       'schema field' => 'label',
     );
 
     $properties['type'] = array(
       'type' => 'profile_type',
-      'getter callback' => 'entity_property_getter_method',
-      'setter callback' => 'entity_property_verbatim_set',
+      'getter callback' => 'entity_plus_property_getter_method',
+      'setter callback' => 'entity_plus_property_verbatim_set',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
       'description' => t('The profile type.'),
@@ -36,7 +36,7 @@ class ProfileMetadataController extends EntityDefaultMetadataController {
       'label' => t("User"),
       'type' => 'user',
       'description' => t("The owner of the profile."),
-      'getter callback' => 'entity_property_getter_method',
+      'getter callback' => 'entity_plus_property_getter_method',
       'setter callback' => 'entity_property_setter_method',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
@@ -47,7 +47,7 @@ class ProfileMetadataController extends EntityDefaultMetadataController {
       'label' => t("Date created"),
       'type' => 'date',
       'description' => t("The date the profile was created."),
-      'setter callback' => 'entity_property_verbatim_set',
+      'setter callback' => 'entity_plus_property_verbatim_set',
       'setter permission' => 'administer profiles',
       'schema field' => 'created',
     );

@@ -37,7 +37,7 @@ class ProfileMetadataController extends EntityDefaultMetadataController {
       'type' => 'user',
       'description' => t("The owner of the profile."),
       'getter callback' => 'entity_plus_property_getter_method',
-      'setter callback' => 'entity_property_setter_method',
+      'setter callback' => 'entity_plus_property_setter_method',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
       'schema field' => 'uid',
